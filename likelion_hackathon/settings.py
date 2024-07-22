@@ -42,7 +42,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1']
+ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -63,6 +63,11 @@ PROJECT_APPS = [
 
 THIRD_PARTY_APPS = [
     "corsheaders",
+    'rest_framework_simplejwt',
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",    
 ]
 
 
@@ -79,7 +84,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    "allauth.account.middleware.AccountMiddleware", 
 ]
+
+ACCOUNT_EMAIL_REQUIRED = True            
+ACCOUNT_USERNAME_REQUIRED = True         
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -108,6 +118,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'likelion_hackathon.wsgi.application'
 
+from datetime import timedelta
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+REST_USE_JWT = True
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),    # 유효기간 3시간
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # 유효기간 7일
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'TOKEN_USER_CLASS': 'accounts.User',
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
