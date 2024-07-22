@@ -42,7 +42,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['43.201.215.123']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -58,7 +58,7 @@ DJANGO_APPS = [
 ]
 
 PROJECT_APPS = [
-
+    'test_api',
 ]
 
 THIRD_PARTY_APPS = [
