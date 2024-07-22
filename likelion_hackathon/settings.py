@@ -42,7 +42,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['43.201.215.123']
+ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1']
 
 
 # Application definition
@@ -58,7 +58,7 @@ DJANGO_APPS = [
 ]
 
 PROJECT_APPS = [
-
+    'accounts',
 ]
 
 THIRD_PARTY_APPS = [
@@ -67,6 +67,8 @@ THIRD_PARTY_APPS = [
 
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
+
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
