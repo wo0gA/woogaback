@@ -37,7 +37,7 @@ class UserManager(BaseUserManager):
         return user 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=64, default='')
+    username = models.CharField(max_length=64, blank=True, null=True)
     email = models.EmailField(null=False, blank=False, unique=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -47,10 +47,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
-
+    
     def get_user_by_email(email):
         try:
             return User.objects.get(email=email)
         except Exception:
             return None
+    
+    def extract_user_data_by_provider(provider, data):
+        if provider == 'google':
+            return {
+                'username': data.get('name', None),
+                'email': data.get('email', None)
+            }
+        elif provider == 'kakao':
+            return {
+                'username': data['kakao_account']['profile']['nickname'],
+                'email': data['kakao_account']['email'],
+            }
+        else:
+            raise ValueError("Unsupported provider.")

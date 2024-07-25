@@ -64,10 +64,12 @@ PROJECT_APPS = [
 THIRD_PARTY_APPS = [
     "corsheaders",
     'rest_framework_simplejwt',
+    'django.contrib.sites',
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",    
+    "allauth.socialaccount.providers.kakao",    
 ]
 
 
@@ -128,6 +130,8 @@ REST_FRAMEWORK = {
 
 REST_USE_JWT = True
 
+SITE_ID = 1
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),    # 유효기간 3시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # 유효기간 7일
@@ -135,6 +139,13 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'TOKEN_USER_CLASS': 'accounts.User',
 }
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

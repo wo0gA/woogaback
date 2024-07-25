@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from rest_framework_simplejwt.serializers import RefreshToken
+from allauth.socialaccount.models import SocialAccount
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -15,18 +16,22 @@ class OAuthSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email']
     
-    def validate(self, data):
+    def validate(self, data):    
         email = data.get('email', None)
-        username = data.get('name', None)
+        username = data.get('username', None)
 
         if email is None:
             raise serializers.ValidationError('Email does not exist.')
         
         if username is None:
-            username = email.split('@')[0]
+            username = email.split('@')[0]  
        
         user = User.get_user_by_email(email=email)
-        
+        # if user is not None:
+        #     social_user = SocialAccount.objects.get(user=user)
+        #     if social_user.provider == provider:
+
+
         if user is None:
             user = User.objects.create(email=email, username=username)
             user.save()

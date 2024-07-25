@@ -39,19 +39,21 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
 
-GOOGLE_SCOPE_USERINFO = get_secret("GOOGLE_SCOPE_USERINFO")
 GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
 GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
 
-
 # 구글 로그인을 하면 인증, 인가 승인
-def google_login(request):
-   scope = GOOGLE_SCOPE_USERINFO        
-   return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
+def google_login(request):      
+    scope = "https://www.googleapis.com/auth/userinfo.email " + \
+                "https://www.googleapis.com/auth/userinfo.profile"
+    return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
 
-def google_callback(request):
+def google_callback(request, provider):
+    #프론트에서 인가코드 받아오기
+    #body = json.loads(request.body.decode('utf-8'))
+    #code = body['code']
     code = request.GET.get("code", None)     
     
     if code is None:
@@ -68,16 +70,77 @@ def google_callback(request):
     google_access_token = token_req_json.get('access_token')
 
     # access token으로 구글 정보 가져오기
-    user_info = requests.get(f"https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={google_access_token}")
+    user_info = requests.get(f"https://www.googleapis.com/oauth2/v3/userinfo?access_token={google_access_token}")
     res_status = user_info.status_code
 
     if res_status != 200:
-        return JsonResponse({'status': 400,'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'status': 400,'message': 'Failed to get access token'}, status=status.HTTP_400_BAD_REQUEST)
     
     user_info_json = user_info.json()
-    #print(user_info_json)
+    
+    extracted_data = User.extract_user_data_by_provider(provider=provider, data=user_info_json)
+    
+    serializer = OAuthSerializer(data=extracted_data)
+    if serializer.is_valid(raise_exception=True):
+        user = serializer.validated_data["user"]
+        access_token = serializer.validated_data["access_token"]
+        refresh_token = serializer.validated_data["refresh_token"]
+        res = JsonResponse(
+            {
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                },
+                "message": "login success",
+                "token": {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+        res.set_cookie("access-token", access_token, httponly=True)
+        res.set_cookie("refresh-token", refresh_token, httponly=True)
+        return res
 
-    serializer = OAuthSerializer(data=user_info_json)
+KAKAO_API = "https://kauth.kakao.com/oauth/authorize?response_type=code"    
+KAKAO_TOKEN_API = "https://kauth.kakao.com/oauth/token"
+KAKAO_USER_API = "https://kapi.kakao.com/v2/user/me"
+KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
+KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
+
+def kakao_login(request):
+    return redirect(f"{KAKAO_API}&client_id={KAKAO_CLIENT_ID}&redirect_uri={KAKAO_REDIRECT_URI}")
+
+def kakao_callback(request, provider):
+    
+    # 인가코드 받기
+    data = {
+        "grant_type": "authorization_code",
+        "client_id": KAKAO_CLIENT_ID,
+        "redirect_uri": KAKAO_REDIRECT_URI,
+        "code": request.GET['code']
+    }
+    
+    if data['code'] is None:
+        return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 인가코드로 access token 받기
+    access_token = requests.post(KAKAO_TOKEN_API, data=data).json()['access_token']
+    print(access_token)
+
+    if access_token is None:
+        return JsonResponse({'error': 'Access token error.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # access token으로 사용자 정보 받기
+    header = {"Authorization":f"Bearer ${access_token}"}
+    user_info_json = requests.get(KAKAO_USER_API, headers=header).json()
+    print(user_info_json)
+
+    extracted_data = User.extract_user_data_by_provider(provider=provider, data=user_info_json)
+
+    serializer = OAuthSerializer(data=extracted_data)
     if serializer.is_valid(raise_exception=True):
         user = serializer.validated_data["user"]
         access_token = serializer.validated_data["access_token"]
