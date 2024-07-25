@@ -39,22 +39,22 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
 
-GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
-GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
+#GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
+#GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
 
 # 구글 로그인을 하면 인증, 인가 승인
-def google_login(request):      
-    scope = "https://www.googleapis.com/auth/userinfo.email " + \
-                "https://www.googleapis.com/auth/userinfo.profile"
-    return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
+# def google_login(request):      
+#     scope = "https://www.googleapis.com/auth/userinfo.email " + \
+#                 "https://www.googleapis.com/auth/userinfo.profile"
+#     return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
 
 def google_callback(request):
     #프론트에서 인가코드 받아오기
-    #body = json.loads(request.body.decode('utf-8'))
-    #code = body['code']
-    code = request.GET.get("code", None)     
+    body = json.loads(request.body.decode('utf-8'))
+    code = body['code']
+    #code = request.GET.get("code", None)     
     
     if code is None:
         return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -112,21 +112,23 @@ KAKAO_USER_API = "https://kapi.kakao.com/v2/user/me"
 KAKAO_CLIENT_ID = get_secret("KAKAO_CLIENT_ID")
 KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
 
-def kakao_login(request):
-    return redirect(f"{KAKAO_API}&client_id={KAKAO_CLIENT_ID}&redirect_uri={KAKAO_REDIRECT_URI}")
+# def kakao_login(request):
+#     return redirect(f"{KAKAO_API}&client_id={KAKAO_CLIENT_ID}&redirect_uri={KAKAO_REDIRECT_URI}")
 
 def kakao_callback(request):
+    #프론트에서 인가코드 받아오기
+    body = json.loads(request.body.decode('utf-8'))
+    code = body['code']
     
-    # 인가코드 받기
+    if code is None:
+        return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
+
     data = {
         "grant_type": "authorization_code",
         "client_id": KAKAO_CLIENT_ID,
         "redirect_uri": KAKAO_REDIRECT_URI,
-        "code": request.GET['code']
+        "code": code
     }
-    
-    if data['code'] is None:
-        return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 인가코드로 access token 받기
     access_token = requests.post(KAKAO_TOKEN_API, data=data).json()['access_token']
