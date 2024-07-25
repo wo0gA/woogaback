@@ -50,7 +50,7 @@ def google_login(request):
                 "https://www.googleapis.com/auth/userinfo.profile"
     return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
 
-def google_callback(request, provider):
+def google_callback(request):
     #프론트에서 인가코드 받아오기
     #body = json.loads(request.body.decode('utf-8'))
     #code = body['code']
@@ -65,6 +65,7 @@ def google_callback(request, provider):
     error = token_req_json.get("error")
 
     if error is not None:
+        print(error)
         raise JSONDecodeError(error)
 
     google_access_token = token_req_json.get('access_token')
@@ -78,8 +79,8 @@ def google_callback(request, provider):
     
     user_info_json = user_info.json()
     
-    extracted_data = User.extract_user_data_by_provider(provider=provider, data=user_info_json)
-    
+    extracted_data = User.extract_user_data_by_provider(provider='google', data=user_info_json)
+
     serializer = OAuthSerializer(data=extracted_data)
     if serializer.is_valid(raise_exception=True):
         user = serializer.validated_data["user"]
@@ -91,6 +92,7 @@ def google_callback(request, provider):
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
+                    "provider": user.provider,
                 },
                 "message": "login success",
                 "token": {
@@ -113,7 +115,7 @@ KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
 def kakao_login(request):
     return redirect(f"{KAKAO_API}&client_id={KAKAO_CLIENT_ID}&redirect_uri={KAKAO_REDIRECT_URI}")
 
-def kakao_callback(request, provider):
+def kakao_callback(request):
     
     # 인가코드 받기
     data = {
@@ -128,7 +130,6 @@ def kakao_callback(request, provider):
 
     # 인가코드로 access token 받기
     access_token = requests.post(KAKAO_TOKEN_API, data=data).json()['access_token']
-    print(access_token)
 
     if access_token is None:
         return JsonResponse({'error': 'Access token error.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -136,9 +137,8 @@ def kakao_callback(request, provider):
     # access token으로 사용자 정보 받기
     header = {"Authorization":f"Bearer ${access_token}"}
     user_info_json = requests.get(KAKAO_USER_API, headers=header).json()
-    print(user_info_json)
 
-    extracted_data = User.extract_user_data_by_provider(provider=provider, data=user_info_json)
+    extracted_data = User.extract_user_data_by_provider(provider='kakao', data=user_info_json)
 
     serializer = OAuthSerializer(data=extracted_data)
     if serializer.is_valid(raise_exception=True):
@@ -151,6 +151,7 @@ def kakao_callback(request, provider):
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
+                    "provider": user.provider,
                 },
                 "message": "login success",
                 "token": {

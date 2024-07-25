@@ -14,11 +14,12 @@ class OAuthSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['username', 'email', 'provider']
     
     def validate(self, data):    
         email = data.get('email', None)
         username = data.get('username', None)
+        provider = data.get('provider', None)
 
         if email is None:
             raise serializers.ValidationError('Email does not exist.')
@@ -26,14 +27,10 @@ class OAuthSerializer(serializers.ModelSerializer):
         if username is None:
             username = email.split('@')[0]  
        
-        user = User.get_user_by_email(email=email)
-        # if user is not None:
-        #     social_user = SocialAccount.objects.get(user=user)
-        #     if social_user.provider == provider:
-
+        user = User.get_user_by_email(email=email, provider=provider)
 
         if user is None:
-            user = User.objects.create(email=email, username=username)
+            user = User.objects.create(email=email, username=username, provider=provider)
             user.save()
         
         token = RefreshToken.for_user(user)

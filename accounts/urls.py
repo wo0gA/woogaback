@@ -8,9 +8,9 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path("google/login/", google_login, name="google_login"),
-    path("<str:provider>/callback/", google_callback, name="google_callback"),
+    path("google/callback/", google_callback, name="google_callback"),
     path("kakao/login/", kakao_login, name="kakao_login"),
-    path("<str:provider>/callback/", kakao_callback, name="kakao_callback"),
+    path("kakao/callback/", kakao_callback, name="kakao_callback"),
 
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
