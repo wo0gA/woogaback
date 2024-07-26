@@ -44,7 +44,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost']
 
-
 # Application definition
 # Application definition
 
@@ -59,6 +58,7 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     'accounts',
+    'test_api',
 ]
 
 THIRD_PARTY_APPS = [
