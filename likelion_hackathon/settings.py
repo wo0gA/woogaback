@@ -42,7 +42,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost', 'develop--billigo-test.netlify.app']
 
 # Application definition
 # Application definition
@@ -98,6 +98,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [ 
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://develop--billigo-test.netlify.app"
 ]
 
 ROOT_URLCONF = 'likelion_hackathon.urls'
