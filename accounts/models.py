@@ -37,6 +37,15 @@ class UserManager(BaseUserManager):
         return user 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    
+    LEVELS = (
+        ('NEWBIE', '뉴비'),
+        ('ROOKIE', '루키'),
+        ('SEMIPRO', '세미프로'),
+        ('PRO', '프로'),
+        ('MASTER', '마스터'),
+    )
+    id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=64, blank=True, null=True)
     email = models.EmailField(null=False, blank=False, unique=True)
     provider = models.CharField(max_length=32, null=True)
@@ -44,6 +53,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
+    point = models.IntegerField(verbose_name='포인트', default=0)
+    manner_score = models.FloatField(verbose_name='매너지수', default=0)
 
     objects = UserManager()
 
