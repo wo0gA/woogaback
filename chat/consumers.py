@@ -2,6 +2,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from accounts.models import User
 from chat.models import ChatRoom, Message
+from chat.models import ShopUser, VisitorUser
 
 
 # 각 클라이언트마다 '채널'을 보유하고 있음
@@ -75,7 +76,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             message = event['message']
             sender_email = event['sender_email']
 
-            await self.send_json({'message': message, })
+            await self.send_json({'message': message, 'sender_email': sender_email})
         except Exception as e:
             await self.send_json({'error': '메시지 전송 실패'})
 
@@ -85,15 +86,18 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def get_or_create_room(self, shop_user_email, visitor_user_email):
-        try:
-            shop_user = User.objects.get(email=shop_user_email)
-        except User.DoesNotExist as e:
-            raise ValueError("물건 주인의 이메일을 User에서 찾을 수 없습니다.")
+        shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
+        visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
 
-        try:
-            visitor_user = User.objects.get(email=visitor_user_email)
-        except User.DoesNotExist as e:
-            raise ValueError("구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다.")
+        # try:
+        #     shop_user = User.objects.get(email=shop_user_email)
+        # except User.DoesNotExist as e:
+        #     raise ValueError("물건 주인의 이메일을 User에서 찾을 수 없습니다.")
+        #
+        # try:
+        #     visitor_user = User.objects.get(email=visitor_user_email)
+        # except User.DoesNotExist as e:
+        #     raise ValueError("구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다.")
 
         # 두 이메일을 받고 ChatRoom을 생성
         room, created = ChatRoom.objects.get_or_create(

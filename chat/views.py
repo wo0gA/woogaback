@@ -2,6 +2,7 @@ from rest_framework import generics, serializers, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from chat.models import ChatRoom, Message
+from chat.models import ShopUser, VisitorUser
 from accounts.models import User
 from chat.serializers import ChatRoomSerializer, MessageSerializer
 
@@ -65,16 +66,19 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
         shop_user_email = self.request.data.get('shop_user_email')
         visitor_user_email = self.request.data.get('visitor_user_email')
 
-        try:
-            shop_user = User.objects.get(email=shop_user_email)
-        except User.DoesNotExist as e:
-            content = {'detail': "물건 주인의 이메일을 User에서 찾을 수 없습니다."}
-            raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
-        try:
-            visitor_user = User.objects.get(email=visitor_user_email)
-        except User.DoesNotExist as e:
-            content = {'detail': "구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다."}
-            raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
+        shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
+        visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
+
+        # try:
+        #     shop_user = User.objects.get(email=shop_user_email)
+        # except User.DoesNotExist as e:
+        #     content = {'detail': "물건 주인의 이메일을 User에서 찾을 수 없습니다."}
+        #     raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
+        # try:
+        #     visitor_user = User.objects.get(email=visitor_user_email)
+        # except User.DoesNotExist as e:
+        #     content = {'detail': "구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다."}
+        #     raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
 
         # 두 이메일을 가진 채팅방이 이미 있는지 확인합니다.
         existing_chatroom = ChatRoom.objects.filter(
