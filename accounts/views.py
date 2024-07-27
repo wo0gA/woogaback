@@ -43,6 +43,7 @@ def get_secret(setting, secrets=secrets):
 #GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
+GOOGLE_REDIRECT_URI = get_secret("GOOGLE_REDIRECT_URI")
 
 # 구글 로그인을 하면 인증, 인가 승인
 # def google_login(request):      
@@ -60,7 +61,7 @@ def google_callback(request):
         return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 인가코드로 access token 받기
-    token_req = requests.post(f"https://oauth2.googleapis.com/token?client_id={GOOGLE_CLIENT_ID}&client_secret={GOOGLE_SECRET}&code={code}&grant_type=authorization_code&redirect_uri={GOOGLE_CALLBACK_URI}")
+    token_req = requests.post(f"https://oauth2.googleapis.com/token?client_id={GOOGLE_CLIENT_ID}&client_secret={GOOGLE_SECRET}&code={code}&grant_type=authorization_code&redirect_uri={GOOGLE_REDIRECT_URI}")
     token_req_json = token_req.json()
     error = token_req_json.get("error")
 
