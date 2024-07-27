@@ -47,6 +47,10 @@ ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost', 'develop--billigo-t
 # Application definition
 # Application definition
 
+DAPHNE = [
+    "daphne",
+]
+
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -59,6 +63,7 @@ DJANGO_APPS = [
 PROJECT_APPS = [
     'accounts',
     'test_api',
+    'chat',
 ]
 
 THIRD_PARTY_APPS = [
@@ -69,11 +74,12 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",    
-    "allauth.socialaccount.providers.kakao",    
+    "allauth.socialaccount.providers.kakao",
+    "channels",
 ]
 
 
-INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
+INSTALLED_APPS = DAPHNE + DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -120,6 +126,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'likelion_hackathon.wsgi.application'
+ASGI_APPLICATION = 'likelion_hackathon.asgi.application'
 
 from datetime import timedelta
 
@@ -199,3 +206,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Channels settings
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(os.environ.get('REDIS_HOST', 'localhost'), 6379)]
+        }
+    }
+}
