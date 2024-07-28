@@ -104,8 +104,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [ 
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://develop--billigo-test.netlify.app",
-    "https://server.templ.es",
+    "https://develop--billigo-test.netlify.app"
 ]
 
 ROOT_URLCONF = 'likelion_hackathon.urls'
