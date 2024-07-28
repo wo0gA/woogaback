@@ -1,0 +1,44 @@
+services:
+  nginx:
+    build: ./nginx
+    image: wooga_nginx:latest
+    volumes:
+      - static_volume:/usr/src/app/_static
+      - /etc/letsencrypt/live/server.templ.es/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+      - /etc/letsencrypt/live/server.templ.es/privkey.pem:/etc/nginx/ssl/privkey.pem:ro
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - web
+  
+  web:
+    build: .
+    image: wooga_web:latest
+    command: daphne likelion_hackathon.asgi:application --port 8000 --bind 0.0.0.0 -v2
+    volumes:
+      - static_volume:/usr/src/app/_static
+      - ./:/usr/src/app/
+    expose:
+      - 8000
+    env_file:
+      - ./.env.prod
+    depends_on:
+      # - db
+      - redis
+  
+  # db:
+  #   image: postgres:12.0-alpine
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   env_file:
+  #     - ./.env.prod.db
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+  
+volumes:
+  # postgres_data:
+  static_volume:
