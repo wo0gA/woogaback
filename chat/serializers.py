@@ -34,13 +34,13 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     def get_opponent_email(self, obj):
         # 요청 사용자와 대화하는 상대방의 이메일 가져오기
         request_user_email = self.context['request'].query_params.get('email', None)
-        if request_user_email == obj.shop_user.email:
-            return obj.visitor_user.email
+        if request_user_email == obj.shop_user.shop_user_email:
+            return obj.visitor_user.visitor_user_email
         else:
-            return obj.shop_user.email
+            return obj.shop_user.shop_user_email
 
     def get_shop_user_email(self, obj):
-        return obj.shop_user.email
+        return obj.shop_user.shop_user_email
 
     def get_visitor_user_email(self, obj):
-        return obj.visitor_user.email
+        return obj.visitor_user.visitor_user_email

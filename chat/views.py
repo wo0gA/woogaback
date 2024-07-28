@@ -27,9 +27,9 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
                 raise ValidationError('Email 파라미터가 필요합니다.')
 
             return ChatRoom.objects.filter(
-                shop_user__email=user_email
+                shop_user__shop_user_email=user_email
             ) | ChatRoom.objects.filter(
-                visitor_user__email=user_email
+                visitor_user__visitor_user_email=user_email
             )
         except ValidationError as e:
             # email 파라미터가 없을 때
@@ -82,7 +82,7 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
 
         # 두 이메일을 가진 채팅방이 이미 있는지 확인합니다.
         existing_chatroom = ChatRoom.objects.filter(
-            shop_user__email=shop_user_email, visitor_user__email=visitor_user_email
+            shop_user__shop_user_email=shop_user_email, visitor_user__visitor_user_email=visitor_user_email
         ).first()
         # 이미 존재하는 채팅방이 있다면 해당 채팅방의 정보를 시리얼라이즈하여 응답합니다.
         if existing_chatroom:
