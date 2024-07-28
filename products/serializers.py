@@ -11,7 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
     
     def get_parent(self, obj):
         if obj.parent is not None:
-            return CategorySerializer(obj.parent).data['id']
+            return CategorySerializer(obj.parent).data
         return None
 
 class TagSerializer(serializers.ModelSerializer):
@@ -41,15 +41,7 @@ class ProductSerializerForRead(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
-class ReviewSerializerForWrite(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = '__all__'
-
-class ReviewSerializerForRead(serializers.ModelSerializer):
-    product = ProductSerializerForRead()
-    writer = UserSerializer()
-
+class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'

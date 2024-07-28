@@ -18,3 +18,12 @@ class RentalHistory(BaseModel):
     rental_end_date = models.DateField(verbose_name='대여 종료날짜')
     rental_fee = models.IntegerField(verbose_name='총 대여료')
     state = models.CharField(choices=STATES, verbose_name='대여 상태', max_length=16)
+
+    def is_rental_available(product_id, rental_start_date, rental_end_date):
+        conflicting_rentals = RentalHistory.objects.filter(
+            product_id=product_id,
+            state__in=['SCHEDULED', 'DEAL_COMPLETED', 'IN_USE'],
+            rental_start_date__lt=rental_end_date,
+            rental_end_date__gt=rental_start_date
+        )
+        return  not conflicting_rentals.exists()

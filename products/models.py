@@ -8,10 +8,12 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+# 초기 카테고리 데이터 생성 필요
 class Category(models.Model):
     id = models.AutoField(primary_key=True)
     sort = models.CharField(verbose_name='카테고리 종류', max_length=16)
     parent = models.ForeignKey('self', verbose_name='상위 카테고리', related_name='child_categories', on_delete=models.CASCADE, null=True, blank=True)
+
 
 # 판매랑 대여랑 나누는 것 필요
 class Product(BaseModel):
@@ -32,8 +34,9 @@ class Product(BaseModel):
     category = models.ForeignKey(Category, verbose_name='카테고리', related_name='products', on_delete=models.CASCADE, null=True, blank=True)
     owner = models.ForeignKey(User, verbose_name='소유자', related_name='products', on_delete=models.CASCADE)
     
-    def count_views(product):
-        pass
+    def update_views(product):
+        product.views +=1
+        product.save()
 
 class Tag(models.Model):
     id = models.AutoField(primary_key=True)

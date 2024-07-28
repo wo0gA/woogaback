@@ -19,11 +19,14 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 class UserDetail(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         user = get_object_or_404(User, id=user.id)
+        User.update_manner_score(user)
+        User.update_level(user)
+        
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -37,12 +40,21 @@ class UserDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class UserProductList(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         products = Product.objects.filter(owner=user)
         serializer = ProductSerializerForRead(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UserProductReviewList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, product_id):
+        user = request.user
+        products = Product.objects.filter(owner=user, id=product_id)
+        serializer = ReviewSerializer(products.reviews)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

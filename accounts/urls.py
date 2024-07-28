@@ -18,4 +18,5 @@ urlpatterns = [
     
     path("", UserDetail.as_view()),
     path("products/", UserProductList.as_view()),
+    path("products/<int:product_id>/reviews/", UserProductReviewList.as_view())
 ]

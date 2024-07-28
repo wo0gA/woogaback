@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import *
 
 class RentalHistoryStatus(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
    
     def get(self, request):
         histories = RentalHistory.objects.filter(renter=request.user)
@@ -29,7 +29,7 @@ class RentalHistoryStatus(APIView):
 
 
 class EnrollmentHistoryStatus(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
    
     def get(self, request):
         histories = RentalHistory.objects.filter(owner=request.user)
@@ -39,7 +39,6 @@ class EnrollmentHistoryStatus(APIView):
         in_use = histories.filter(state='IN_USE').count()
         returned = histories.filter(state='RETURNED').count()
 
-        # 대여신청 데이터 추가 필요
         data = {
             '등록물품': enrolled_products,
             '거래승인': deal_completed,
@@ -49,10 +48,12 @@ class EnrollmentHistoryStatus(APIView):
         return Response(data)
 
 class RentalHistoryList(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         histories = RentalHistory.objects.filter(renter=request.user)
         serializer = RentalHistorySerializerForRead(histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
+# post 함수 구현 필요, 물품 대여시 
+# put 함수 구현 필요, 반납완료 되면 사용자 포인트 +100p 로직 추가
