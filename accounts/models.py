@@ -56,10 +56,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
     point = models.IntegerField(verbose_name='포인트', default=0)
     manner_score = models.FloatField(verbose_name='매너지수', default=0)
+    profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+    
+    def calculate_point_and_level(user):
+        pass
+
+    def calculate_manner_score(user):
+        pass
     
     def get_user_by_email(email, provider):
         try:

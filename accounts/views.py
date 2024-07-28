@@ -5,6 +5,8 @@ from rest_framework import status
 from django.http import Http404
 from .models import *
 from .serializers import *
+from products.serializers import *
+from products.models import *
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import *
 from django.shortcuts import redirect
@@ -17,14 +19,32 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
         user = get_object_or_404(User, id=user.id)
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
+    def put(self, request):
+        user = request.user
+        user = get_object_or_404(User, id=user.id)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class UserProductList(APIView):
+    #permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        products = Product.objects.filter(owner=user)
+        serializer = ProductSerializerForRead(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 secret_file = os.path.join(BASE_DIR, "secrets.json")
@@ -39,22 +59,22 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
 
-#GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
-#GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
+GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
+GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
 
 # 구글 로그인을 하면 인증, 인가 승인
-# def google_login(request):      
-#     scope = "https://www.googleapis.com/auth/userinfo.email " + \
-#                 "https://www.googleapis.com/auth/userinfo.profile"
-#     return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
+def google_login(request):      
+    scope = "https://www.googleapis.com/auth/userinfo.email " + \
+                "https://www.googleapis.com/auth/userinfo.profile"
+    return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
 
 def google_callback(request):
     #프론트에서 인가코드 받아오기
-    body = json.loads(request.body.decode('utf-8'))
-    code = body['code']
-    #code = request.GET.get("code", None)     
+    #body = json.loads(request.body.decode('utf-8'))
+    #code = body['code']
+    code = request.GET.get("code", None)     
     
     if code is None:
         return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -86,6 +106,7 @@ def google_callback(request):
         user = serializer.validated_data["user"]
         access_token = serializer.validated_data["access_token"]
         refresh_token = serializer.validated_data["refresh_token"]
+        first_login = serializer.validated_data["first_login"]
         res = JsonResponse(
             {
                 "user": {
@@ -99,6 +120,7 @@ def google_callback(request):
                     "access_token": access_token,
                     "refresh_token": refresh_token,
                 },
+                "first_login": first_login,
             },
             status=status.HTTP_200_OK,
         )
@@ -147,6 +169,7 @@ def kakao_callback(request):
         user = serializer.validated_data["user"]
         access_token = serializer.validated_data["access_token"]
         refresh_token = serializer.validated_data["refresh_token"]
+        first_login = serializer.validated_data["first_login"]
         res = JsonResponse(
             {
                 "user": {
@@ -160,6 +183,7 @@ def kakao_callback(request):
                     "access_token": access_token,
                     "refresh_token": refresh_token,
                 },
+                "first_login": first_login,
             },
             status=status.HTTP_200_OK,
         )
