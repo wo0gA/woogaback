@@ -32,16 +32,30 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
             Tag.objects.create(product=product, **tag_data)
         return product
     
+class SimpleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username']
+    
 class ProductSerializerForRead(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    owner = UserSerializer()
+    owner = SimpleUserSerializer()
     category = CategorySerializer()
 
     class Meta:
         model = Product
         fields = '__all__'
 
-class ReviewSerializer(serializers.ModelSerializer):
+class ReviewSerializerForWrite(serializers.ModelSerializer):
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+class ReviewSerializerForRead(serializers.ModelSerializer):
+    writer = SimpleUserSerializer()
+
     class Meta:
         model = Review
         fields = '__all__'

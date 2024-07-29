@@ -13,10 +13,20 @@ class Category(models.Model):
     id = models.AutoField(primary_key=True)
     sort = models.CharField(verbose_name='카테고리 종류', max_length=16)
     parent = models.ForeignKey('self', verbose_name='상위 카테고리', related_name='child_categories', on_delete=models.CASCADE, null=True, blank=True)
+    views = models.IntegerField(verbose_name='조회수', default=0)
 
+    def update_views(self):
+        self.views +=1
+        self.save()
 
 # 판매랑 대여랑 나누는 것 필요
 class Product(BaseModel):
+    TYPES = (
+        ('SALE', '판매용'),
+        ('RENTAL', '대여용'),
+        ('BOTH', '판매/대여용'),
+    )
+
     id = models.AutoField(primary_key=True)
     name = models.CharField(verbose_name='제품명', max_length=32)
     description = models.CharField(verbose_name='설명', max_length=64)
@@ -26,17 +36,27 @@ class Product(BaseModel):
     rental_fee_for_a_month = models.IntegerField(verbose_name='한달 대여료', null=True, blank=True)
     rental_period_limit = models.IntegerField(verbose_name='최대 대여가능기간')
     direct_dealing_is_allowed = models.BooleanField(verbose_name='직거래 가능여부')
-    direct_dealing_place  = models.CharField(verbose_name='희망 직거래 장소', max_length=128)
+    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128)
     delivery_fee_is_included = models.BooleanField(verbose_name='배송비 포함여부')
-    delivery_fee = models.IntegerField(verbose_name='배송비')
+    type = models.CharField(verbose_name='제품 타입', max_length=8, default='RENTAL')
     views = models.IntegerField(verbose_name='조회수', default=0)
     photos = models.JSONField(verbose_name='제품 이미지')
     category = models.ForeignKey(Category, verbose_name='카테고리', related_name='products', on_delete=models.CASCADE, null=True, blank=True)
     owner = models.ForeignKey(User, verbose_name='소유자', related_name='products', on_delete=models.CASCADE)
     
-    def update_views(product):
-        product.views +=1
-        product.save()
+    def update_views(self):
+        self.views +=1
+        self.save()
+
+    def get_popular_products():
+        from django.db.models import Q
+        popular_products = Product.objects.filter(
+            Q(views__gte=50) |
+            (Q(category__views__gte=20) &
+            Q(category__parent__isnull=False))
+        ).distinct()
+        
+        return popular_products
 
 class Tag(models.Model):
     id = models.AutoField(primary_key=True)
@@ -49,4 +69,8 @@ class Review(models.Model):
     writer = models.ForeignKey(User, verbose_name='작성자', related_name='reviews', on_delete=models.CASCADE)
     star = models.IntegerField(verbose_name='owner에 대한 별점평가')
     comment = models.CharField(verbose_name='product에 대한 코멘트', max_length=32)
+    
+        
 
+
+   

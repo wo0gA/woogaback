@@ -54,7 +54,7 @@ class UserProductReviewList(APIView):
     def get(self, request, product_id):
         user = request.user
         products = Product.objects.filter(owner=user, id=product_id)
-        serializer = ReviewSerializer(products.reviews)
+        serializer = ReviewSerializerForRead(products.reviews)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

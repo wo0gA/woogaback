@@ -55,5 +55,5 @@ class RentalHistoryList(APIView):
         serializer = RentalHistorySerializerForRead(histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
-# post 함수 구현 필요, 물품 대여시 
+# post 함수 구현 필요
 # put 함수 구현 필요, 반납완료 되면 사용자 포인트 +100p 로직 추가

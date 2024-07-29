@@ -60,10 +60,11 @@ class ReviewList(APIView):
    
     def get(self, request, product_id):
         reviews = Review.objects.filter(product_id=product_id)
-        serializer = ReviewSerializer(reviews, many=True)
+        serializer = ReviewSerializerForRead(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     # rentalhistory 상태가 반납완료로 변경 전 호출 필요
+    # 반환값에 rental_days 추가 필요
     def post(self, request, product_id):
         product = get_object_or_404(Product, id=product_id)
         data = {
@@ -73,10 +74,10 @@ class ReviewList(APIView):
             'comment': request.data['comment'],
         }
 
-        serializer = ReviewSerializer(data=data)
+        serializer = ReviewSerializerForWrite(data=data)
         if serializer.is_valid():
             review = serializer.save()
-            serializer = ReviewSerializer(review)
+            serializer = ReviewSerializerForRead(review)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,3 +95,18 @@ class RentalAvailability(APIView):
         rental_end_date = request.data['rental_end_date']
         availability = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
         return Response(availability)
+
+
+class SearchbyCategory(APIView):
+    def get(self, request, category_id):
+        category = get_object_or_404(Category, id=category_id)
+        Category.update_views(category)
+        products = Product.objects.filter(category_id=category_id)
+        serializer = ProductSerializerForRead(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class PopularProductList(APIView):
+    def get(self, request):
+        products = Product.get_popular_products()
+        serializer = ProductSerializerForRead(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
