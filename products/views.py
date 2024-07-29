@@ -84,7 +84,7 @@ class ReviewList(APIView):
 
 class CategoryList(APIView):
     def get(self, request):
-        categories = Category.objects.all()
+        categories = Category.objects.filter(level=0).prefetch_related('children')
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -101,7 +101,12 @@ class SearchbyCategory(APIView):
     def get(self, request, category_id):
         category = get_object_or_404(Category, id=category_id)
         Category.update_views(category)
-        products = Product.objects.filter(category_id=category_id)
+
+        # 해당 카테고리의 자식 카테고리 전부 조회
+        categories = Category.objects.filter(id=category_id).get_descendants(include_self=True)
+        
+        # 부모 카테고리일 경우 자식 카테고리까지 포함해서 제품 조회
+        products = Product.objects.filter(category__in =categories)
         serializer = ProductSerializerForRead(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     

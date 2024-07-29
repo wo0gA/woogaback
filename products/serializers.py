@@ -3,16 +3,22 @@ from .models import *
 from accounts.serializers import *
 
 class CategorySerializer(serializers.ModelSerializer):
-    parent = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id', 'sort', 'children', 'views', 'parent']
     
-    def get_parent(self, obj):
-        if obj.parent is not None:
-            return CategorySerializer(obj.parent).data
+    def get_children(self, obj):
+        if obj.children is not None:
+            children = obj.children.all()
+            return CategorySerializer(children, many=True).data
         return None
+    
+class SimpleCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'sort']
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,7 +29,7 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = ['views']
     
     def create(self, validated_data):
         tags_data = validated_data.pop('tags', [])
@@ -40,7 +46,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 class ProductSerializerForRead(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     owner = SimpleUserSerializer()
-    category = CategorySerializer()
+    category = SimpleCategorySerializer()
 
     class Meta:
         model = Product

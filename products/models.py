@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import *
+from mptt.models import MPTTModel, TreeForeignKey
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(verbose_name='생성일시', auto_now_add=True)
@@ -9,11 +10,17 @@ class BaseModel(models.Model):
         abstract = True
 
 # 초기 카테고리 데이터 생성 필요
-class Category(models.Model):
+class Category(MPTTModel):
     id = models.AutoField(primary_key=True)
     sort = models.CharField(verbose_name='카테고리 종류', max_length=16)
-    parent = models.ForeignKey('self', verbose_name='상위 카테고리', related_name='child_categories', on_delete=models.CASCADE, null=True, blank=True)
+    parent = TreeForeignKey('self', verbose_name='상위 카테고리', related_name='children',  db_index=True, on_delete=models.CASCADE, null=True, blank=True)
     views = models.IntegerField(verbose_name='조회수', default=0)
+    
+    class Meta:
+        ordering = ['tree_id', 'lft']
+
+    class MPTTMeta:
+        order_insertion_by = ['sort']
 
     def update_views(self):
         self.views +=1
@@ -41,7 +48,7 @@ class Product(BaseModel):
     type = models.CharField(verbose_name='제품 타입', max_length=8, default='RENTAL')
     views = models.IntegerField(verbose_name='조회수', default=0)
     photos = models.JSONField(verbose_name='제품 이미지')
-    category = models.ForeignKey(Category, verbose_name='카테고리', related_name='products', on_delete=models.CASCADE, null=True, blank=True)
+    category = TreeForeignKey(Category, verbose_name='카테고리', related_name='products', on_delete=models.CASCADE, db_index=True, null=True, blank=True)
     owner = models.ForeignKey(User, verbose_name='소유자', related_name='products', on_delete=models.CASCADE)
     
     def update_views(self):
