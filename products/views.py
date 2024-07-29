@@ -27,7 +27,20 @@ class ProductList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request):
+        from django.db.models import Q
+        keyword = request.query_params.get('keyword', None)
         products = Product.objects.all()
+
+        Tag.update_views(keyword)
+
+        if keyword:
+            products = products.filter(
+                Q(name__icontains=keyword) |
+                Q(description__icontains=keyword) |
+                Q(long_description__icontains=keyword) |
+                Q(tags__hashtag__icontains=keyword)
+            ).distinct()
+        
         serializer = ProductSerializerForRead(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -109,7 +122,7 @@ class SearchbyCategory(APIView):
         products = Product.objects.filter(category__in =categories)
         serializer = ProductSerializerForRead(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 class PopularProductList(APIView):
     def get(self, request):
         products = Product.get_popular_products()

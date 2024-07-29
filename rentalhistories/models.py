@@ -21,7 +21,10 @@ class RentalHistory(BaseModel):
     rental_days = models.IntegerField(verbose_name='대여기간', default=0)
     rental_fee = models.IntegerField(verbose_name='총 대여료')
     state = models.CharField(choices=STATES, verbose_name='대여 상태', max_length=16)
-
+    
+    class Meta:
+        ordering = ['-created_at']
+        
     def update_rental_days(self):
         self.rental_days = (self.rental_end_date-self.rental_start_date).days
         self.save()
