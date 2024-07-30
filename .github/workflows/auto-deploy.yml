@@ -1,0 +1,30 @@
+name: Auto Deploy with Docker Compose
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Execute remote SSH commands
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd /home/ubuntu/repositories/woogaback
+          docker compose down
+          git pull
+          docker compose up -d --build
+          docker compose exec web python manage.py makemigrations
+          docker compose exec web python manage.py migrate
+          docker image prune -f

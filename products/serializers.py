@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import *
 from accounts.serializers import *
 
+
 class CategorySerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
 
@@ -99,3 +100,13 @@ class ReviewSerializerForRead(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+class ProductSerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
+    #category = CategorySerializer(many=True)
+    #tags = TagSerializer(many=True)
+    
+    class Meta:
+        model = Product
+        fields = "__all__"
+
