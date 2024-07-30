@@ -56,10 +56,42 @@ class User(AbstractBaseUser, PermissionsMixin):
     level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
     point = models.IntegerField(verbose_name='포인트', default=0)
     manner_score = models.FloatField(verbose_name='매너지수', default=0)
+    profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
+    def update_level(user):
+        if 500<= user.point <1500:
+            user.level = 'ROOKIE'
+        elif 1500<= user.point <3500:
+            user.level = 'SEMIPRO'
+        elif 3500<= user.point <6000:
+            user.level = 'PRO'
+        else:
+            user.level = 'MASTER'
+        user.save()
+    
+    def update_point(user):
+        user.point+=50
+        user.save()
+    
+    def update_manner_score(user):
+        from products.models import Review
+        from django.db.models import Sum
+        reviews = Review.objects.filter(product__owner=user)
+        count = reviews.count()
+
+        if count == 0:
+            user.manner_score = 0
+        else:
+            sum = reviews.aggregate(sum=Sum('star'))['sum']
+            user.manner_score = round(((sum * 20) / count), 1)
+        
+        user.save()
+        return user
     
     def get_user_by_email(email, provider):
         try:

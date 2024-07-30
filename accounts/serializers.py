@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username','email']
+        fields = ['username', 'email', 'level', 'point', 'manner_score', 'profile']
 
 class OAuthSerializer(serializers.ModelSerializer):
     email = serializers.CharField(required=True)
@@ -20,6 +20,7 @@ class OAuthSerializer(serializers.ModelSerializer):
         email = data.get('email', None)
         username = data.get('username', None)
         provider = data.get('provider', None)
+        created = False
 
         if email is None:
             raise serializers.ValidationError('Email does not exist.')
@@ -31,6 +32,7 @@ class OAuthSerializer(serializers.ModelSerializer):
 
         if user is None:
             user = User.objects.create(email=email, username=username, provider=provider)
+            created = True
             user.save()
         
         token = RefreshToken.for_user(user)
@@ -41,6 +43,7 @@ class OAuthSerializer(serializers.ModelSerializer):
             "user": user,
             "refresh_token": refresh_token,
             "access_token": access_token,
+            "first_login": created,
         }
 
         return data
