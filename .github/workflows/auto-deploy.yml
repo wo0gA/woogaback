@@ -25,4 +25,6 @@ jobs:
           docker compose down
           git pull
           docker compose up -d --build
+          docker compose exec web python manage.py makemigrations
+          docker compose exec web python manage.py migrate
           docker image prune -f
