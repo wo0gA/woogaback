@@ -3,14 +3,11 @@ from products.models import *
 
 class RentalHistory(BaseModel):
 
+    # 수정필요
     STATES = (
-        ('SCHEDULED','일정확정'),
-        ('CANCELLED','거래취소'),
-        ('DEAL_COMPLETED','거래승인'),
-        ('IN_USE','사용중'),
-        ('RETURNED','반납완료'),
-        # 판매용
-        ('SOLDOUT','판매완료'),
+        ('SCHEDULED','일정확정'),   # 히스토리 인스턴스 생성
+        ('IN_USE','사용중'),    # 시작날짜 도래하면 사용중으로 변경
+        ('FINISHED','반납완료'),   # 반납완료 버튼 누르면 반납완료로 변경
     )
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, verbose_name='제품', related_name='rentalhistories', on_delete=models.CASCADE)
@@ -19,8 +16,7 @@ class RentalHistory(BaseModel):
     rental_start_date = models.DateField(verbose_name='대여 시작날짜')
     rental_end_date = models.DateField(verbose_name='대여 종료날짜')
     rental_days = models.IntegerField(verbose_name='대여기간', default=0)
-    rental_fee = models.IntegerField(verbose_name='총 대여료')
-    state = models.CharField(choices=STATES, verbose_name='대여 상태', max_length=16)
+    state = models.CharField(choices=STATES, verbose_name='대여 상태', max_length=16) 
     
     class Meta:
         ordering = ['-created_at']

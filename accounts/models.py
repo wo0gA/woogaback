@@ -46,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('MASTER', '마스터'),
     )
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=64, blank=True, null=True)
+    username = models.CharField(max_length=16, blank=True, null=True)
     email = models.EmailField(null=False, blank=False, unique=True)
     provider = models.CharField(max_length=32, null=True)
     is_active = models.BooleanField(default=True)
@@ -56,7 +56,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
     point = models.IntegerField(verbose_name='포인트', default=0)
     manner_score = models.FloatField(verbose_name='매너지수', default=0)
-    profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True)
+    profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True, default=dict) # default 기본프로필 s3 url로 수정 필요
 
     objects = UserManager()
 
