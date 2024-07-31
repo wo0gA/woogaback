@@ -57,3 +57,4 @@ class RentalHistoryList(APIView):
         
 # post 함수 구현 필요
 # put 함수 구현 필요, 반납완료 되면 사용자 포인트 +100p 로직 추가
+# 일정변경의 경우 히스토리가 내 것인지 확인하는 것도 필요. 
