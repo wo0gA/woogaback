@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from chat.models import ChatRoom, Message
+from products.serializers import ProductSerializerForRead
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -16,10 +17,11 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     shop_user_email = serializers.SerializerMethodField()
     visitor_user_email = serializers.SerializerMethodField()
     messages = MessageSerializer(many=True, read_only=True, source='messages.all')
+    product = ProductSerializerForRead(read_only=True)
 
     class Meta:
         model = ChatRoom
-        fields = ('id', 'shop_user_email', 'visitor_user_email', 'latest_message', 'opponent_email', 'messages')
+        fields = ('id', 'shop_user_email', 'visitor_user_email', 'latest_message', 'opponent_email', 'messages', 'product')
 
     # get_<method_field> 메서드 파라미터 안에 있는 obj는 ChatRoom 객체이다
 

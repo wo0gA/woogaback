@@ -9,6 +9,9 @@ from chat.serializers import ChatRoomSerializer, MessageSerializer
 from django.http import Http404, JsonResponse
 from django.conf import settings
 
+from products.models import Product
+
+
 # Create your views here.
 class ImmediateResponseException(Exception):
     # 사용자 정의 예외 클래스로, 예외가 발생할 때 즉각적인 HTTP 응답을 생성하기 위해 사용됨
@@ -22,15 +25,19 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         try:
             user_email = self.request.query_params.get('email', None)
+            type = self.request.query_params.get('type', None)
 
-            if not user_email:
-                raise ValidationError('Email 파라미터가 필요합니다.')
+            if not user_email or not type:
+                raise ValidationError('email 또는 type 파라미터가 필요합니다.')
 
-            return ChatRoom.objects.filter(
-                shop_user__shop_user_email=user_email
-            ) | ChatRoom.objects.filter(
-                visitor_user__visitor_user_email=user_email
-            )
+            if type == 'owner':
+                return ChatRoom.objects.filter(
+                    shop_user__shop_user_email=user_email
+                )
+            elif type == 'visitor':
+                return ChatRoom.objects.filter(
+                    visitor_user__visitor_user_email=user_email
+                )
         except ValidationError as e:
             # email 파라미터가 없을 때
             content = {'detail': e.detail}
@@ -65,9 +72,11 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         shop_user_email = self.request.data.get('shop_user_email')
         visitor_user_email = self.request.data.get('visitor_user_email')
+        product_id = self.request.data.get('product')
 
         shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
         visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
+        product = Product.objects.get(id=product_id)
 
         # try:
         #     shop_user = User.objects.get(email=shop_user_email)
@@ -80,16 +89,16 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
         #     content = {'detail': "구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다."}
         #     raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
 
-        # 두 이메일을 가진 채팅방이 이미 있는지 확인합니다.
+        # 채팅방이 이미 있는지 확인합니다.
         existing_chatroom = ChatRoom.objects.filter(
-            shop_user__shop_user_email=shop_user_email, visitor_user__visitor_user_email=visitor_user_email
+            shop_user__shop_user_email=shop_user_email, visitor_user__visitor_user_email=visitor_user_email, product_id=product_id
         ).first()
         # 이미 존재하는 채팅방이 있다면 해당 채팅방의 정보를 시리얼라이즈하여 응답합니다.
         if existing_chatroom:
             serializer = ChatRoomSerializer(existing_chatroom, context={'request': self.request})
             raise ImmediateResponseException(Response(serializer.data, status=status.HTTP_200_OK))
 
-        serializer.save(shop_user=shop_user, visitor_user=visitor_user)
+        serializer.save(shop_user=shop_user, visitor_user=visitor_user, product=product)
 
 class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer

@@ -12,6 +12,7 @@ class ChatRoom(models.Model):
     visitor_user = models.ForeignKey(VisitorUser, on_delete=models.CASCADE)
     # shop_user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='shop_user')
     # visitor_user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='visitor_user')
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     class Meta:
         unique_together = ('shop_user', 'visitor_user')
