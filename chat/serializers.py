@@ -5,15 +5,16 @@ from chat.models import ChatRoom, Message
 from products.serializers import ProductSerializerForRead
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = "__all__"
-
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('password',)
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender = SimpleUserSerializer(read_only=True)
+    class Meta:
+        model = Message
+        fields = "__all__"
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     # SerializerMethodField는 ChatRoom 필드에 더해 추가적으로 반환되는 필드들이다
