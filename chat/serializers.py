@@ -13,7 +13,7 @@ class MessageSerializer(serializers.ModelSerializer):
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = ('password',)
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     # SerializerMethodField는 ChatRoom 필드에 더해 추가적으로 반환되는 필드들이다
@@ -44,10 +44,10 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         request_user_email = self.context['request'].query_params.get('email', None)
         if request_user_email is None:
             return None
-        if request_user_email == obj.shop_user.shop_user_email:
-            return obj.visitor_user.visitor_user_email
+        if request_user_email == obj.shop_user.email:
+            return obj.visitor_user.email
         else:
-            return obj.shop_user.shop_user_email
+            return obj.shop_user.email
 
     # def get_shop_user_username(self, obj):
     #     return obj.shop_user.username
