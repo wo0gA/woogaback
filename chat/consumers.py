@@ -2,7 +2,6 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from accounts.models import User
 from chat.models import ChatRoom, Message
-from chat.models import ShopUser, VisitorUser
 
 
 # 각 클라이언트마다 '채널'을 보유하고 있음
@@ -40,15 +39,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             message = content['message']
             sender_email = content['sender_email']
-            shop_user_email = content.get('shop_user_email')
-            visitor_user_email = content.get('visitor_user_email')
+            room_id = content['room_id']
 
-            # 두 이메일이 모두 제공되었는지 확인
-            if not shop_user_email or not visitor_user_email:
-                raise ValueError('물건 주인과 구매/대여 희망자 이메일이 모두 필요합니다.')
-
-            # 이메일로 room 불러오거나 생성
-            room = await self.get_or_create_room(shop_user_email, visitor_user_email)
+            sender = User.objects.get(email=sender_email)
+            room = ChatRoom.objects.get(id=room_id)
 
             # room_id 업데이트
             self.room_id = str(room.id)
@@ -57,13 +51,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             group_name = self.get_group_name(self.room_id)
 
             # 수신된 메시지를 데이터베이스에 저장
-            await self.save_message(room, sender_email, message)
+            await self.save_message(room, sender, message)
 
             # 메시지를 전체 그룹에 전송
             await self.channel_layer.group_send(group_name, {
                 'type': 'chat_message',
                 'message': message,
-                'sender_email': sender_email
+                'sender_username': sender.username
             })
 
         except ValueError as e:
@@ -74,9 +68,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         # 받은 메시지를 현재 채널(클라이언트)에 전송한다
         try:
             message = event['message']
-            sender_email = event['sender_email']
+            sender_username = event['sender_username']
 
-            await self.send_json({'message': message, 'sender_email': sender_email})
+            await self.send_json({'message': message, 'sender_username': sender_username})
         except Exception as e:
             await self.send_json({'error': '메시지 전송 실패'})
 
@@ -84,35 +78,35 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     def get_group_name(room_id):
         return f'chat_room_{room_id}'
 
+    # @database_sync_to_async
+    # def get_or_create_room(self, shop_user_email, visitor_user_email):
+    #     shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
+    #     visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
+    #
+    #     # try:
+    #     #     shop_user = User.objects.get(email=shop_user_email)
+    #     # except User.DoesNotExist as e:
+    #     #     raise ValueError("물건 주인의 이메일을 User에서 찾을 수 없습니다.")
+    #     #
+    #     # try:
+    #     #     visitor_user = User.objects.get(email=visitor_user_email)
+    #     # except User.DoesNotExist as e:
+    #     #     raise ValueError("구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다.")
+    #
+    #     # 두 이메일을 받고 ChatRoom을 생성
+    #     room, created = ChatRoom.objects.get_or_create(
+    #         shop_user=shop_user,
+    #         visitor_user=visitor_user
+    #     )
+    #     return room
+
     @database_sync_to_async
-    def get_or_create_room(self, shop_user_email, visitor_user_email):
-        shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
-        visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
-
-        # try:
-        #     shop_user = User.objects.get(email=shop_user_email)
-        # except User.DoesNotExist as e:
-        #     raise ValueError("물건 주인의 이메일을 User에서 찾을 수 없습니다.")
-        #
-        # try:
-        #     visitor_user = User.objects.get(email=visitor_user_email)
-        # except User.DoesNotExist as e:
-        #     raise ValueError("구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다.")
-
-        # 두 이메일을 받고 ChatRoom을 생성
-        room, created = ChatRoom.objects.get_or_create(
-            shop_user=shop_user,
-            visitor_user=visitor_user
-        )
-        return room
-
-    @database_sync_to_async
-    def save_message(self, room, sender_email, message_text):
-        if not sender_email or not message_text:
-            raise ValueError("발신자 이메일 및 메시지 텍스트가 필요합니다.")
+    def save_message(self, room, sender, message_text):
+        if not message_text:
+            raise ValueError("메시지 텍스트가 필요합니다.")
 
         # 메시지를 생성하고 데이터베이스에 저장
-        Message.objects.create(room=room, sender_email=sender_email, text=message_text)
+        Message.objects.create(room=room, sender=sender, text=message_text)
 
     @database_sync_to_async
     def check_room_exists(self, room_id):
