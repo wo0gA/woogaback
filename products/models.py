@@ -30,9 +30,9 @@ class Category(MPTTModel):
 
 class Product(BaseModel):
     STATES = (
-        ('BEST', '상'),
-        ('GOOD', '중'),
-        ('AVERAGE', '하'),
+        ('BEST', '새 것과 비슷해요'),
+        ('GOOD', '깨끗해요'),
+        ('AVERAGE', '쓸 만해요'),
     )
 
     id = models.AutoField(primary_key=True)
@@ -42,7 +42,7 @@ class Product(BaseModel):
     rental_fee_for_a_day = models.IntegerField(verbose_name='일일 대여료')
     rental_fee_for_a_week = models.IntegerField(verbose_name='일주일 대여료', null=True, blank=True)
     direct_dealing_is_allowed = models.BooleanField(verbose_name='직거래 가능여부')
-    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128)
+    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128, null=True, blank=True)
     delivery_fee_is_included = models.BooleanField(verbose_name='배송비 포함여부')
     state = models.CharField(choices=STATES, verbose_name='제품 상태', max_length=8, default='')
     views = models.IntegerField(verbose_name='조회수', default=0)
@@ -57,17 +57,6 @@ class Product(BaseModel):
     def update_views(self):
         self.views +=1
         self.save()
-
-    def get_popular_products():
-        from django.db.models import Q
-        popular_products = Product.objects.filter(
-            Q(views__gte=50) |
-            (Q(category__views__gte=20) &
-            Q(category__children__isnull=True)) |
-            Q(tags__views__gte=20)
-        ).distinct()
-        
-        return popular_products
     
     # 오버라이딩
     def delete(self, *args, **kwargs):
@@ -92,6 +81,7 @@ class Tag(models.Model):
             tag = Tag.objects.get(hashtag=keyword)
         except ObjectDoesNotExist:
             tag = None
+            
         if tag is not None:
             tag.views+=1
             tag.save()
@@ -102,7 +92,7 @@ class Review(BaseModel):
     product = models.ForeignKey(Product, verbose_name='제품', related_name='reviews', on_delete=models.CASCADE)
     writer = models.ForeignKey(User, verbose_name='작성자', related_name='reviews', on_delete=models.CASCADE)
     star = models.IntegerField(verbose_name='owner에 대한 별점평가')
-    comment = models.CharField(verbose_name='product에 대한 코멘트', max_length=32)
+    comment = models.CharField(verbose_name='product에 대한 코멘트', max_length=64)
     
     class Meta:
         ordering = ['-created_at']

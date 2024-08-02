@@ -14,4 +14,9 @@ class RentalHistorySerializerForRead(serializers.ModelSerializer):
     class Meta:
         model = RentalHistory
         fields = '__all__'
-    
+
+
+class RentalHistorySerializerForWrite(serializers.ModelSerializer):
+    class Meta:
+        model = RentalHistory
+        fields = '__all__'

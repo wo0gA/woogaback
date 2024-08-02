@@ -116,7 +116,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [ 
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://develop--billigo-test.netlify.app",
+    "https://develop--billigo-test.netlify.app", # 수정필요
     "https://server.templ.es",
     "https://www.server.templ.es",
 ]

@@ -39,11 +39,11 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     
     LEVELS = (
-        ('NEWBIE', '뉴비'),
-        ('ROOKIE', '루키'),
-        ('SEMIPRO', '세미프로'),
-        ('PRO', '프로'),
-        ('MASTER', '마스터'),
+        ('NEWBIE', '신인'),
+        ('ROOKIE', '후보'),
+        ('SEMIPRO', '주전'),
+        ('PRO', '올스타'),
+        ('MASTER', '국대'),
     )
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=16, blank=True, null=True)
@@ -55,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
     point = models.IntegerField(verbose_name='포인트', default=0)
-    manner_score = models.FloatField(verbose_name='매너지수', default=0)
+    manner_score = models.FloatField(verbose_name='바로미터', default=0)
     profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True, default=dict) # default 기본프로필 s3 url로 수정 필요
 
     objects = UserManager()
@@ -74,8 +74,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             user.level = 'MASTER'
         user.save()
     
-    def update_point(user):
-        user.point+=50
+    def update_point(user, points):
+        user.point+=points
         user.save()
     
     def update_manner_score(user):

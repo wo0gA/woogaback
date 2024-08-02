@@ -21,29 +21,56 @@ class ProductList(APIView):
         serializer = ProductSerializerForWrite(data=data)
         if serializer.is_valid():
             product = serializer.save()
-            User.update_point(user)
+            User.update_point(user, 50)
             serializer = ProductSerializerForRead(product)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    
     def get(self, request):
         from django.db.models import Q
-        keyword = request.query_params.get('keyword', None)
+        keyword = request.GET.get('keyword', None)  # 검색어 파라미터
+        category_str = request.GET.get('category', None)  # 카테고리 파라미터
+        order = request.GET.get('order', None)  # 정렬 옵션 파라미터
+
         products = Product.objects.all()
 
-        Tag.update_views(keyword)
-
+        # 검색어 기준 필터링
         if keyword:
+            Tag.update_views(keyword)
+            
             products = products.filter(
                 Q(name__icontains=keyword) |
+                Q(model_name__icontains=keyword) |
                 Q(description__icontains=keyword) |
-                Q(long_description__icontains=keyword) |
                 Q(tags__hashtag__icontains=keyword)
             ).distinct()
         
+        # 카테고리 기준 필터링
+        if category_str:
+            category = get_object_or_404(Category, sort=category_str)
+            Category.update_views(category)
+
+            # 해당 카테고리의 자식 카테고리 전부 조회
+            categories = Category.objects.filter(id=category.id).get_descendants(include_self=True)
+        
+            # 부모 카테고리일 경우 자식 카테고리까지 포함해서 제품 조회
+            products = products.filter(category__in =categories)
+        
+        # 정렬 옵션 기준 정렬
+        if order:
+            if order == 'recent':
+               products = products.order_by('-created_at')
+    
+            elif order == 'views':
+                products = products.order_by('-views')
+    
+            elif order == 'min_price':
+                products = products.order_by('rental_fee_for_a_day')
+    
         serializer = ProductSerializerForRead(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
 
 class ProductDetail(APIView):
     permission_classes = [IsWriterOrReadOnly]
@@ -69,6 +96,7 @@ class ProductDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
             
 
+
 class ReviewList(APIView):
    
     def get(self, request, product_id):
@@ -76,15 +104,15 @@ class ReviewList(APIView):
         serializer = ReviewSerializerForRead(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    # rentalhistory 상태가 반납완료로 변경 전 호출 필요
     # 반환값에 rental_days 추가 필요
     def post(self, request, product_id):
+    
         product = get_object_or_404(Product, id=product_id)
         data = {
             'product': product.id,
             'writer': request.user.id,
             'star': request.data['star'],
-            'comment': request.data['comment'],
+            'comment': request.data['comment']
         }
 
         serializer = ReviewSerializerForWrite(data=data)
@@ -102,6 +130,13 @@ class CategoryList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class PopularCategoryList(APIView):
+    def get(self, request):
+        categories = Category.objects.order_by('-views')[:5]
+        serializer = SimpleCategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
 class RentalAvailability(APIView):
     def get(self, request, product_id):
         rental_start_date = request.data['rental_start_date']
@@ -110,21 +145,10 @@ class RentalAvailability(APIView):
         return Response(availability)
 
 
-class SearchbyCategory(APIView):
-    def get(self, request, category_id):
-        category = get_object_or_404(Category, id=category_id)
-        Category.update_views(category)
-
-        # 해당 카테고리의 자식 카테고리 전부 조회
-        categories = Category.objects.filter(id=category_id).get_descendants(include_self=True)
-        
-        # 부모 카테고리일 경우 자식 카테고리까지 포함해서 제품 조회
-        products = Product.objects.filter(category__in =categories)
-        serializer = ProductSerializerForRead(products, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 class PopularProductList(APIView):
     def get(self, request):
-        products = Product.get_popular_products()
-        serializer = ProductSerializerForRead(products, many=True)
+        import random
+        products = Product.objects.order_by('-views')[:50]
+        selected_popular_products = random.sample(products, 8)
+        serializer = ProductSerializerForRead(selected_popular_products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
