@@ -6,7 +6,7 @@ urlpatterns = [
     path("<int:product_id>/", ProductDetail.as_view()),
     path("<int:product_id>/reviews/", ReviewList.as_view()),
     path("categories/", CategoryList.as_view()),
+    path("categories/popularity/", PopularCategoryList.as_view()),
     path("<int:product_id>/availability/", RentalAvailability.as_view()),
-    path("categories/<int:category_id>/", SearchbyCategory.as_view()),
     path("popularity/", PopularProductList.as_view())
 ]

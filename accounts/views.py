@@ -48,15 +48,6 @@ class UserProductList(APIView):
         serializer = ProductSerializerForRead(products, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class UserProductReviewList(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, product_id):
-        user = request.user
-        products = Product.objects.filter(owner=user, id=product_id)
-        serializer = ReviewSerializerForRead(products.reviews)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 secret_file = os.path.join(BASE_DIR, "secrets.json")

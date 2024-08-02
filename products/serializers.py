@@ -96,17 +96,9 @@ class ReviewSerializerForWrite(serializers.ModelSerializer):
 
 class ReviewSerializerForRead(serializers.ModelSerializer):
     writer = SimpleUserSerializer()
-
+   
     class Meta:
         model = Review
         fields = '__all__'
 
-class ProductSerializer(serializers.ModelSerializer):
-    owner = UserSerializer()
-    #category = CategorySerializer(many=True)
-    #tags = TagSerializer(many=True)
-    
-    class Meta:
-        model = Product
-        fields = "__all__"
 
