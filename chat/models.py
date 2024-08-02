@@ -9,7 +9,7 @@ class ChatRoom(models.Model):
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     class Meta:
-        unique_together = ('shop_user', 'visitor_user')
+        unique_together = ('shop_user', 'visitor_user', 'product')
 
 class Message(models.Model):
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
