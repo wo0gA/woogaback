@@ -83,10 +83,15 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.google",    
     "allauth.socialaccount.providers.kakao",
     "channels",
+    'django_apscheduler',
 ]
 
 
 INSTALLED_APPS = DAPHNE + DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a" 
+
+SCHEDULER_DEFAULT = True
 
 AUTH_USER_MODEL = 'accounts.User'
 

@@ -8,5 +8,6 @@ urlpatterns = [
     path("categories/", CategoryList.as_view()),
     path("categories/popularity/", PopularCategoryList.as_view()),
     path("<int:product_id>/availability/", RentalAvailability.as_view()),
-    path("popularity/", PopularProductList.as_view())
+    path("popularity/", PopularProductList.as_view()),
+    path("<int:product_id>/recommendation/", ProductRecommendList.as_view())
 ]

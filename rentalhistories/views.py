@@ -9,6 +9,29 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import *
 from datetime import datetime
 
+def update_rental_info():
+    print('Update remaining rental days and rental state.')
+
+    today = date.today()
+    rental_histories = RentalHistory.objects.filter(rental_end_date__gte=today)
+    
+    for history in rental_histories:
+
+        # 대여상태 사용중으로 업데이트
+        if history.rental_start_date <= today:
+            if history.state != 'IN_USE':
+                history.state = 'IN_USE'
+                history.save()
+
+        # 남은 대여일수 업데이트
+        remaining_days = (history.rental_end_date-today).days
+        if remaining_days < 0:
+            remaining_days = 0
+        
+        history.remaining_days = remaining_days
+        history.save()
+
+
 class RentalHistoryList(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -30,6 +53,8 @@ class EnrollmentHistoryList(APIView):
 
 
 class HistoryList(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         product_id = request.GET.get('product')
         renter_id = request.GET.get('renter')
@@ -58,13 +83,15 @@ class HistoryList(APIView):
        # 대여 가능한 기간인지 확인
         availability = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
         if availability:
+            today = date.today()
+
             rental_history_data = {
                 "product": product_id,
                 "owner": product.owner.id,
                 "renter": renter_id,
                 "rental_start_date": rental_start_date,
                 "rental_end_date": rental_end_date,
-                "remaining_days": (rental_end_date-rental_start_date).days,
+                "remaining_days": (rental_end_date-today).days,
                 "state": "SCHEDULED" 
             }
 
@@ -77,13 +104,15 @@ class HistoryList(APIView):
 
 
 class HistoryListDetail(APIView):
+    # permission_classes = [IsAuthenticatedOrReadOnly] 수정 필요
+
     def put(self, request, rentalhistory_id):
         history = get_object_or_404(RentalHistory, id=rentalhistory_id)
         
         # 상태를 변경하는 경우
         if 'state' in request.data:
             state = request.data['state']
-            #User.update_point(request.user, 100)
+            User.update_point(request.user, 100)
 
             data = {
                 'state': state
@@ -122,9 +151,3 @@ class HistoryListDetail(APIView):
         history.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
            
-        
-
-
-
-# put 함수 구현 필요, 
-# 일정변경의 경우 히스토리가 내 것인지 확인하는 것도 필요

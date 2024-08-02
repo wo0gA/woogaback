@@ -98,6 +98,7 @@ class ProductDetail(APIView):
 
 
 class ReviewList(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
    
     def get(self, request, product_id):
         reviews = Review.objects.filter(product_id=product_id)
@@ -148,7 +149,23 @@ class RentalAvailability(APIView):
 class PopularProductList(APIView):
     def get(self, request):
         import random
-        products = Product.objects.order_by('-views')[:50]
-        selected_popular_products = random.sample(products, 8)
+        products = list(Product.objects.order_by('-views')[:50])
+
+        size = min(8, len(products))
+        selected_popular_products = random.sample(products, size)
+
         serializer = ProductSerializerForRead(selected_popular_products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class ProductRecommendList(APIView):
+    def get(self, request, product_id):
+        import random
+        product = get_object_or_404(Product, id=product_id)
+        recommend_product_list = list(Product.objects.filter(category__parent=product.category.parent))
+
+        size = min(4, len(recommend_product_list))
+        selected = random.sample(recommend_product_list, size)
+
+        serializer = ProductSerializerForRead(selected, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

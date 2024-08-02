@@ -22,10 +22,7 @@ class RentalHistory(BaseModel):
     
     class Meta:
         ordering = ['-created_at']
-        
-    # def update_rental_days(self):
-    #     self.rental_days = (self.rental_end_date-self.rental_start_date).days
-    #     self.save()
+ 
         
     def is_rental_available(product_id, rental_start_date, rental_end_date, rentalhistory_id=None):
         today = date.today()
