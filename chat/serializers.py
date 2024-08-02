@@ -20,6 +20,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     # SerializerMethodField는 ChatRoom 필드에 더해 추가적으로 반환되는 필드들이다
     # read-only라서 저장은 되지 않는다 (.save()에 안쓰임)
     latest_message = serializers.SerializerMethodField()
+    latest_message_timestamp = serializers.SerializerMethodField()
     opponent_username = serializers.SerializerMethodField()
     shop_user = SimpleUserSerializer(read_only=True)
     visitor_user = SimpleUserSerializer(read_only=True)
@@ -28,7 +29,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatRoom
-        fields = ('id', 'shop_user', 'visitor_user', 'latest_message', 'opponent_username', 'messages', 'product')
+        fields = ('id', 'shop_user', 'visitor_user', 'latest_message', 'latest_message_timestamp', 'opponent_username', 'messages', 'product')
 
     # get_<method_field> 메서드 파라미터 안에 있는 obj는 ChatRoom 객체이다
 
@@ -37,6 +38,14 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         latest_msg = Message.objects.filter(room=obj).order_by('-timestamp').first()
         if latest_msg:
             return latest_msg.text
+        else:
+            return None
+        
+    def get_latest_message_timestamp(self, obj):
+        # 최신 메시지 시간 가져오기
+        latest_msg = Message.objects.filter(room=obj).order_by('-timestamp').first()
+        if latest_msg:
+            return latest_msg.timestamp
         else:
             return None
 
