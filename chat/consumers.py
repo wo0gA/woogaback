@@ -41,7 +41,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             sender_email = content['sender_email']
             room_id = content['room_id']
 
+
             sender, room = await self.get_user_and_chatroom(sender_email, room_id)
+
 
             # room_id 업데이트
             self.room_id = str(room.id)
@@ -99,11 +101,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     #     )
     #     return room
 
+
     @database_sync_to_async
     def get_user_and_chatroom(self, sender_email, room_id):
         sender = User.objects.get(email=sender_email)
         room = ChatRoom.objects.get(id=room_id)
         return sender, room
+
 
     @database_sync_to_async
     def save_message(self, room, sender, message_text):

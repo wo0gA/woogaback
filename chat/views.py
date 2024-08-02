@@ -2,12 +2,8 @@ from rest_framework import generics, serializers, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from chat.models import ChatRoom, Message
-from chat.models import ShopUser, VisitorUser
 from accounts.models import User
 from chat.serializers import ChatRoomSerializer, MessageSerializer
-
-from django.http import Http404, JsonResponse
-from django.conf import settings
 
 from products.models import Product
 
@@ -32,12 +28,15 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
 
             if type == 'owner':
                 return ChatRoom.objects.filter(
-                    shop_user__shop_user_email=user_email
+                    shop_user__email=user_email
                 )
             elif type == 'visitor':
                 return ChatRoom.objects.filter(
-                    visitor_user__visitor_user_email=user_email
+                    visitor_user__email=user_email
                 )
+            else:
+                raise ValidationError('type이 올바르지 않습니다.')
+
         except ValidationError as e:
             # email 파라미터가 없을 때
             content = {'detail': e.detail}
@@ -74,24 +73,24 @@ class ChatRoomListCreateView(generics.ListCreateAPIView):
         visitor_user_email = self.request.data.get('visitor_user_email')
         product_id = self.request.data.get('product')
 
-        shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
-        visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
+        # shop_user, _ = ShopUser.objects.get_or_create(shop_user_email=shop_user_email)
+        # visitor_user, _ = VisitorUser.objects.get_or_create(visitor_user_email=visitor_user_email)
         product = Product.objects.get(id=product_id)
 
-        # try:
-        #     shop_user = User.objects.get(email=shop_user_email)
-        # except User.DoesNotExist as e:
-        #     content = {'detail': "물건 주인의 이메일을 User에서 찾을 수 없습니다."}
-        #     raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
-        # try:
-        #     visitor_user = User.objects.get(email=visitor_user_email)
-        # except User.DoesNotExist as e:
-        #     content = {'detail': "구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다."}
-        #     raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
+        try:
+            shop_user = User.objects.get(email=shop_user_email)
+        except User.DoesNotExist as e:
+            content = {'detail': "물건 주인의 이메일을 User에서 찾을 수 없습니다."}
+            raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
+        try:
+            visitor_user = User.objects.get(email=visitor_user_email)
+        except User.DoesNotExist as e:
+            content = {'detail': "구매/대여 희망자의 이메일을 User에서 찾을 수 없습니다."}
+            raise ImmediateResponseException(Response(content, status=status.HTTP_400_BAD_REQUEST))
 
         # 채팅방이 이미 있는지 확인합니다.
         existing_chatroom = ChatRoom.objects.filter(
-            shop_user__shop_user_email=shop_user_email, visitor_user__visitor_user_email=visitor_user_email, product_id=product_id
+            shop_user=shop_user, visitor_user=visitor_user, product=product
         ).first()
         # 이미 존재하는 채팅방이 있다면 해당 채팅방의 정보를 시리얼라이즈하여 응답합니다.
         if existing_chatroom:
