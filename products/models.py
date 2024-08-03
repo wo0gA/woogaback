@@ -42,7 +42,7 @@ class Product(BaseModel):
     rental_fee_for_a_day = models.IntegerField(verbose_name='일일 대여료')
     rental_fee_for_a_week = models.IntegerField(verbose_name='일주일 대여료', null=True, blank=True)
     direct_dealing_is_allowed = models.BooleanField(verbose_name='직거래 가능여부')
-    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128, null=True, blank=True)
+    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128, null=True, blank=True, default='')
     delivery_fee_is_included = models.BooleanField(verbose_name='배송비 포함여부')
     state = models.CharField(choices=STATES, verbose_name='제품 상태', max_length=16, default='')
     views = models.IntegerField(verbose_name='조회수', default=0)

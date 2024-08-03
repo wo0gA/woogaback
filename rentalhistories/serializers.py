@@ -11,6 +11,7 @@ class ProductSerializerForRentalHistory(serializers.ModelSerializer):
 
 
 class RentalHistorySerializerForRead(serializers.ModelSerializer):
+    renter = SimpleUserSerializer()
     product = ProductSerializerForRentalHistory()
 
     class Meta:

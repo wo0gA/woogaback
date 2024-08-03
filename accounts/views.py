@@ -39,13 +39,18 @@ class UserDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class UserProductList(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        products = Product.objects.filter(owner=user)
+class StoreProductList(APIView): 
+    def get(self, request, user_id):
+        products = Product.objects.filter(owner_id=user_id)
         serializer = ProductSerializerForRead(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class StoreReviewList(APIView):
+    def get(self, request, user_id):
+        reviews = Review.objects.filter(product__owner__id=user_id)
+        serializer = ReviewSerializerForRead(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

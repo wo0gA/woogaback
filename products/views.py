@@ -18,6 +18,7 @@ class ProductList(APIView):
         user = request.user
         data = request.data
         data['owner'] = request.user.id
+        
         serializer = ProductSerializerForWrite(data=data)
         if serializer.is_valid():
             product = serializer.save()
@@ -43,7 +44,8 @@ class ProductList(APIView):
                 Q(name__icontains=keyword) |
                 Q(model_name__icontains=keyword) |
                 Q(description__icontains=keyword) |
-                Q(tags__hashtag__icontains=keyword)
+                Q(tags__hashtag__icontains=keyword) |
+                Q(direct_dealing_place__icontains=keyword)
             ).distinct()
         
         # 카테고리 기준 필터링
@@ -159,13 +161,12 @@ class PopularProductList(APIView):
     
 
 class ProductRecommendList(APIView):
-    def get(self, request, product_id):
+    def get(self, request):
         import random
-        product = get_object_or_404(Product, id=product_id)
-        recommend_product_list = list(Product.objects.filter(category__parent=product.category.parent))
+        products = Product.objects.all()
 
-        size = min(4, len(recommend_product_list))
-        selected = random.sample(recommend_product_list, size)
+        size = min(4, len(products))
+        selected = random.sample(products, size)
 
         serializer = ProductSerializerForRead(selected, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

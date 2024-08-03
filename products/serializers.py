@@ -123,6 +123,11 @@ class ProductSerializerForRead(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['name', 'thumbnails']
+
 
 # review 관련 시리얼라이저
 class ReviewSerializerForWrite(serializers.ModelSerializer):
@@ -133,6 +138,7 @@ class ReviewSerializerForWrite(serializers.ModelSerializer):
 
 
 class ReviewSerializerForRead(serializers.ModelSerializer):
+    product = SimpleProductSerializer()
     writer = SimpleUserSerializer()
    
     class Meta:
