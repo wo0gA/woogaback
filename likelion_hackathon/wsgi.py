@@ -11,10 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-from rentalhistories.tasks import scheduler
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'likelion_hackathon.settings')
 
 application = get_wsgi_application()
-
-scheduler.start()

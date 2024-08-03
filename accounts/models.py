@@ -56,7 +56,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
     point = models.IntegerField(verbose_name='포인트', default=0)
     manner_score = models.FloatField(verbose_name='바로미터', default=0)
-    profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True, default=dict) # default 기본프로필 s3 url로 수정 필요
+    profile = models.ImageField(verbose_name='프로필사진',null=True, blank=True, default=dict) # default 기본프로필 s3 url로 수정 필요
 
     objects = UserManager()
 

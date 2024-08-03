@@ -3,9 +3,11 @@ from .models import *
 from products.serializers import *
 
 class ProductSerializerForRentalHistory(serializers.ModelSerializer):
+    thumbnails = ProductThumbnailSerializer(many=True)
+
     class Meta:
         model = Product
-        fields = ['id', 'name', 'photos']  
+        fields = ['id', 'name', 'thumbnails']  
 
 
 class RentalHistorySerializerForRead(serializers.ModelSerializer):

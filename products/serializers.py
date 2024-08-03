@@ -2,13 +2,13 @@ from rest_framework import serializers
 from .models import *
 from accounts.serializers import *
 
-
+# category 관련 시리얼라이저
 class CategorySerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Category
-        fields = ['id', 'sort', 'children', 'views', 'parent']
+        fields = ['sort', 'children', 'views']
     
     def get_children(self, obj):
         if obj.children is not None:
@@ -16,29 +16,65 @@ class CategorySerializer(serializers.ModelSerializer):
             return CategorySerializer(children, many=True).data
         return None
     
+
+class CategorySerializerForProduct(serializers.ModelSerializer):
+    parent = serializers.SerializerMethodField() 
+
+    class Meta:
+        model = Category
+        fields = ['sort', 'parent', 'views']
+
+    def get_parent(self, obj):
+        if obj.parent is not None:
+            return CategorySerializerForProduct(obj.parent).data
+        return None
+
+
 class SimpleCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'sort', 'views']
 
+
+# tag 관련 시리얼라이저
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
 
+
+# product 관련 시리얼라이저
+class ProductThumbnailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductThumbnail
+        fields = ['thumbnail']
+
+
 class ProductSerializerForWrite(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
+    thumbnails = serializers.SerializerMethodField()
     
     class Meta:
         model = Product
         exclude = ['views']
-    
+
+    def get_thumbnails(self, obj):
+        thumbnails = obj.thumbnails.all()
+        return ProductThumbnailSerializer(thumbnails, many=True).data
+
     def create(self, validated_data):
         tags_data = validated_data.pop('tags', [])
+        thumbnails_data = validated_data.pop('thumbnails', [])
+
         product = Product.objects.create(**validated_data)
+
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(**tag_data)
             product.tags.add(tag)
+        
+        for thumbnail_data in thumbnails_data:
+            ProductThumbnail.objects.create(product=product, thumbnail=thumbnail_data)
+
         return product
     
     # count 성능 보완 필요
@@ -72,7 +108,6 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
         instance.save()
         return instance
     
-
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -81,12 +116,15 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 class ProductSerializerForRead(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     owner = SimpleUserSerializer()
-    category = SimpleCategorySerializer()
+    category = CategorySerializerForProduct()
+    thumbnails = ProductThumbnailSerializer(many=True)
 
     class Meta:
         model = Product
         fields = '__all__'
 
+
+# review 관련 시리얼라이저
 class ReviewSerializerForWrite(serializers.ModelSerializer):
 
     class Meta:
