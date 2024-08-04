@@ -5,7 +5,7 @@ class UserManager(BaseUserManager):
     
     use_in_migrations = True    
     
-    def create_user(self, username, email, profile, password=None):        
+    def create_user(self, username, email, profile=None, password=None):        
         
         if not username :
             raise ValueError('Username is required.')   
@@ -28,7 +28,8 @@ class UserManager(BaseUserManager):
        
         user = self.create_user(
             username = username,
-            email = self.normalize_email(email),            
+            email = self.normalize_email(email), 
+            profile=None,           
             password = password           
         )           
         user.is_superuser = True
