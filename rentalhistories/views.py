@@ -81,8 +81,8 @@ class HistoryList(APIView):
         rental_end_date = datetime.strptime(request.data['rental_end_date'], "%Y-%m-%d").date()
        
        # 대여 가능한 기간인지 확인
-        availability = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
-        if availability:
+        data = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
+        if data['availability']:
             today = date.today()
 
             rental_history_data = {
@@ -100,7 +100,11 @@ class HistoryList(APIView):
                 serializer.save() 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        raise ValidationError('해당기간은 대여가 불가능합니다.')
+        
+        serializer = RentalHistorySerializerForRead(data['conflicting_days'], many=True)
+        return Response({'message': '해당 기간은 대여가 불가능합니다.', 'conflicting_days': serializer.data}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class HistoryListDetail(APIView):

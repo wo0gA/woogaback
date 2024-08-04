@@ -56,6 +56,7 @@ class Product(BaseModel):
     def update_views(self):
         self.views +=1
         self.save()
+
     
     # 오버라이딩
     def delete(self, *args, **kwargs):

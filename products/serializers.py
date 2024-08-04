@@ -51,7 +51,7 @@ class ProductThumbnailSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializerForWrite(serializers.ModelSerializer):
-    tags = TagSerializer(many=True)
+    tags = TagSerializer(many=True, required=False)
     thumbnails = serializers.SerializerMethodField()
     
     class Meta:
@@ -64,6 +64,7 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags', [])
+        
         thumbnails_data = validated_data.pop('thumbnails', [])
 
         product = Product.objects.create(**validated_data)
@@ -79,7 +80,9 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
     
     # count 성능 보완 필요
     def update(self, instance, validated_data):
+        import json
         tags_data = validated_data.pop('tags', [])
+        thumbnails_data = validated_data.pop('thumbnails', [])
         
         # 일반 필드 업데이트
         for attr, value in validated_data.items():
@@ -104,9 +107,17 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
         # 새로운 태그 설정
         instance.tags.set(new_tags)
 
+        # 현재 썸네일 삭제
+        instance.thumbnails.all().delete()
+
+         # 새 썸네일 추가
+        for thumbnail_data in thumbnails_data:
+            ProductThumbnail.objects.create(product=instance, **thumbnail_data)
+
         # 제품 저장
         instance.save()
         return instance
+    
     
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:

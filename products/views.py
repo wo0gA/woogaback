@@ -9,6 +9,8 @@ from rentalhistories.models import *
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import *
 from likelion_hackathon.permissions import *
+from rentalhistories.serializers import RentalHistorySerializerForRead
+from datetime import datetime
 
 
 class ProductList(APIView):
@@ -19,6 +21,8 @@ class ProductList(APIView):
         data = request.data
         data['owner'] = request.user.id
         
+        print(data)
+
         serializer = ProductSerializerForWrite(data=data)
         if serializer.is_valid():
             product = serializer.save()
@@ -85,6 +89,8 @@ class ProductDetail(APIView):
 
     def put(self, request, product_id):
         product = get_object_or_404(Product, id=product_id)
+        print(request.data)
+        
         serializer = ProductSerializerForWrite(product, data=request.data, partial=True)
         if serializer.is_valid():
             product = serializer.save()
@@ -144,8 +150,16 @@ class RentalAvailability(APIView):
     def get(self, request, product_id):
         rental_start_date = request.data['rental_start_date']
         rental_end_date = request.data['rental_end_date']
-        availability = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
-        return Response(availability)
+        
+        rental_start_date = datetime.strptime(request.data['rental_start_date'], "%Y-%m-%d").date()
+        rental_end_date = datetime.strptime(request.data['rental_end_date'], "%Y-%m-%d").date()
+       
+        data = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
+
+        if data['conflicting_days']: 
+            serializer = RentalHistorySerializerForRead(data['conflicting_days'], many=True)
+            return Response({'message': '해당 기간은 대여가 불가능합니다.', 'conflicting_days': serializer.data}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': '해당 기간은 대여가 가능합니다.'}, status=status.HTTP_200_OK)
 
 
 class PopularProductList(APIView):
