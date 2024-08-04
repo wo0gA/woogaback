@@ -69,7 +69,7 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured(error_msg)
 
 GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
-GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
+#GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
 GOOGLE_REDIRECT_URI = get_secret("GOOGLE_REDIRECT_URI")
