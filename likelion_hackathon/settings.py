@@ -45,7 +45,7 @@ DEBUG = int(os.environ.get('DEBUG', 1))
 if os.environ.get('DJANGO_ALLOWED_HOSTS'):
     ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS').split(' ')
 else:
-    ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost', 'develop--billigo-test.netlify.app']
+    ALLOWED_HOSTS = ['43.201.215.123', '127.0.0.1', 'localhost', 'develop--billigo-test.netlify.app', 'develop--baronow.netlify.app']
 
 # Application definition
 # Application definition
@@ -83,12 +83,36 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.google",    
     "allauth.socialaccount.providers.kakao",
     "channels",
+    'django_apscheduler',
+    'storages'
 ]
 
 
 INSTALLED_APPS = DAPHNE + DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a" 
+
+SCHEDULER_DEFAULT = True
+
 AUTH_USER_MODEL = 'accounts.User'
+
+###AWS###
+AWS_ACCESS_KEY_ID = get_secret("AWS_ACCESS_KEY_ID") 
+AWS_SECRET_ACCESS_KEY = get_secret("AWS_SECRET_ACCESS_KEY") 
+AWS_REGION = 'ap-northeast-2'
+
+###S3###
+AWS_STORAGE_BUCKET_NAME = get_secret("AWS_STORAGE_BUCKET_NAME")
+AWS_CLOUDFRONT_DOMAIN = get_secret("AWS_CLOUDFRONT_DOMAIN")
+AWS_S3_CUSTOM_DOMAIN = AWS_CLOUDFRONT_DOMAIN 
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+# Media URL
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage' 
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -119,6 +143,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://develop--billigo-test.netlify.app", # 수정필요
     "https://server.templ.es",
     "https://www.server.templ.es",
+    "https://develop--baronow.netlify.app"
 ]
 
 ROOT_URLCONF = 'likelion_hackathon.urls'

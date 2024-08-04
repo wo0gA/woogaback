@@ -17,15 +17,12 @@ class RentalHistory(BaseModel):
     owner = models.ForeignKey(User, verbose_name='소유자', related_name='owner_histories', on_delete=models.CASCADE)
     rental_start_date = models.DateField(verbose_name='대여 시작날짜')
     rental_end_date = models.DateField(verbose_name='대여 종료날짜')
-    remaining_days = models.IntegerField(verbose_name='남은 대여기간', default=0)  # 업데이트 필요 
+    remaining_days = models.IntegerField(verbose_name='남은 대여기간', default=0) 
     state = models.CharField(choices=STATES, verbose_name='대여 상태', max_length=16, default='SCHEDULED') 
     
     class Meta:
         ordering = ['-created_at']
-        
-    # def update_rental_days(self):
-    #     self.rental_days = (self.rental_end_date-self.rental_start_date).days
-    #     self.save()
+ 
         
     def is_rental_available(product_id, rental_start_date, rental_end_date, rentalhistory_id=None):
         today = date.today()
@@ -49,5 +46,9 @@ class RentalHistory(BaseModel):
         # 수정을 하고자하는 예약 히스토리는 필터링에서 무시
         if rentalhistory_id:
             conflicting_rentals = conflicting_rentals.exclude(id=rentalhistory_id)
-
-        return  not conflicting_rentals.exists()
+        
+        data = {
+            'conflicting_days': conflicting_rentals,
+            'availability':  not conflicting_rentals.exists()
+        }
+        return  data

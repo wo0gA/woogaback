@@ -11,5 +11,6 @@ class CategoryAdmin(DraggableMPTTAdmin):
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product)
+admin.site.register(ProductThumbnail)
 admin.site.register(Tag)
 admin.site.register(Review)

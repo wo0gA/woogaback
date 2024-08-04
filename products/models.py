@@ -30,9 +30,9 @@ class Category(MPTTModel):
 
 class Product(BaseModel):
     STATES = (
-        ('BEST', '새 것과 비슷해요'),
-        ('GOOD', '깨끗해요'),
-        ('AVERAGE', '쓸 만해요'),
+        ('새 것과 비슷해요', '새 것과 비슷해요'),
+        ('깨끗해요', '깨끗해요'),
+        ('쓸 만해요', '쓸 만해요'),
     )
 
     id = models.AutoField(primary_key=True)
@@ -42,14 +42,13 @@ class Product(BaseModel):
     rental_fee_for_a_day = models.IntegerField(verbose_name='일일 대여료')
     rental_fee_for_a_week = models.IntegerField(verbose_name='일주일 대여료', null=True, blank=True)
     direct_dealing_is_allowed = models.BooleanField(verbose_name='직거래 가능여부')
-    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128, null=True, blank=True)
+    direct_dealing_place = models.CharField(verbose_name='희망 직거래 장소', max_length=128, null=True, blank=True, default='')
     delivery_fee_is_included = models.BooleanField(verbose_name='배송비 포함여부')
-    state = models.CharField(choices=STATES, verbose_name='제품 상태', max_length=8, default='')
+    state = models.CharField(choices=STATES, verbose_name='제품 상태', max_length=16, default='')
     views = models.IntegerField(verbose_name='조회수', default=0)
-    photos = models.JSONField(verbose_name='제품 이미지')
     category = TreeForeignKey(Category, verbose_name='카테고리', related_name='products', on_delete=models.CASCADE, db_index=True, null=True, blank=True)
     owner = models.ForeignKey(User, verbose_name='소유자', related_name='products', on_delete=models.CASCADE)
-    tags = models.ManyToManyField('Tag', related_name='products')
+    tags = models.ManyToManyField('Tag', related_name='products', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -57,6 +56,7 @@ class Product(BaseModel):
     def update_views(self):
         self.views +=1
         self.save()
+
     
     # 오버라이딩
     def delete(self, *args, **kwargs):
@@ -69,7 +69,12 @@ class Product(BaseModel):
         for tag in tags:
             if tag.products.count() == 0:  # 연결된 다른 제품이 없으면 태그 삭제
                 tag.delete()
-                
+
+class ProductThumbnail(models.Model):
+    id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(Product, related_name='thumbnails', on_delete=models.CASCADE) 
+    thumbnail = models.ImageField(verbose_name='제품 이미지')      
+
 
 class Tag(models.Model):
     id = models.AutoField(primary_key=True)

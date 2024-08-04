@@ -17,5 +17,6 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     
     path("", UserDetail.as_view()),
-    path("products/", UserProductList.as_view()),
+    path("<int:user_id>/store/products/", StoreProductList.as_view()),
+    path("<int:user_id>/store/reviews/", StoreReviewList.as_view()),
 ]

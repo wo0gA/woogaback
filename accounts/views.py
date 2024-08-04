@@ -33,19 +33,25 @@ class UserDetail(APIView):
     def put(self, request):
         user = request.user
         user = get_object_or_404(User, id=user.id)
+        print(request.data)
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class UserProductList(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        products = Product.objects.filter(owner=user)
+class StoreProductList(APIView): 
+    def get(self, request, user_id):
+        products = Product.objects.filter(owner_id=user_id)
         serializer = ProductSerializerForRead(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class StoreReviewList(APIView):
+    def get(self, request, user_id):
+        reviews = Review.objects.filter(product__owner__id=user_id)
+        serializer = ReviewSerializerForRead(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -62,8 +68,8 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
 
-#GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
-#GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
+GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
+GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
 GOOGLE_REDIRECT_URI = get_secret("GOOGLE_REDIRECT_URI")

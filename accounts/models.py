@@ -5,7 +5,7 @@ class UserManager(BaseUserManager):
     
     use_in_migrations = True    
     
-    def create_user(self, username, email, password=None):        
+    def create_user(self, username, email, profile, password=None):        
         
         if not username :
             raise ValueError('Username is required.')   
@@ -15,7 +15,8 @@ class UserManager(BaseUserManager):
        
         user = self.model(      
             username = username,      
-            email = self.normalize_email(email),            
+            email = self.normalize_email(email), 
+            profile = profile           
         )
         if password:
             user.set_password(password)
@@ -23,7 +24,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)        
         return user    
      
-    def create_superuser(self, email, username, password):        
+    def create_superuser(self, username, email, password):        
        
         user = self.create_user(
             username = username,
@@ -46,7 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('MASTER', '국대'),
     )
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=16, blank=True, null=True)
+    username = models.CharField(max_length=16, blank=True, null=True, default='')
     email = models.EmailField(null=False, blank=False, unique=True)
     provider = models.CharField(max_length=32, null=True)
     is_active = models.BooleanField(default=True)
@@ -56,7 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     level = models.CharField(choices=LEVELS, verbose_name='레벨', max_length=8, default='NEWBIE')
     point = models.IntegerField(verbose_name='포인트', default=0)
     manner_score = models.FloatField(verbose_name='바로미터', default=0)
-    profile = models.JSONField(verbose_name='프로필사진',null=True, blank=True, default=dict) # default 기본프로필 s3 url로 수정 필요
+    profile = models.ImageField(verbose_name='프로필사진',null=True, blank=True, default='profile-default-image.png')
 
     objects = UserManager()
 
@@ -102,13 +103,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def extract_user_data_by_provider(provider, data):
         if provider == 'google':
             return {
-                'username': data.get('name', None),
                 'email': data.get('email', None),
                 'provider' : provider,
             }
         elif provider == 'kakao':
             return {
-                'username': data['kakao_account']['profile']['nickname'],
                 'email': data['kakao_account']['email'],
                 'provider' : provider,
             }
