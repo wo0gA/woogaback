@@ -8,7 +8,7 @@ class CategorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        fields = ['sort', 'children', 'views']
+        fields = ['id', 'sort', 'children', 'views']
     
     def get_children(self, obj):
         if obj.children is not None:
@@ -22,7 +22,7 @@ class CategorySerializerForProduct(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['sort', 'parent', 'views']
+        fields = ['id', 'sort', 'parent', 'views']
 
     def get_parent(self, obj):
         if obj.parent is not None:
