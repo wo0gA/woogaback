@@ -9,5 +9,7 @@ urlpatterns = [
     path("categories/popularity/", PopularCategoryList.as_view()),
     path("<int:product_id>/availability/", RentalAvailability.as_view()),
     path("popularity/", PopularProductList.as_view()),
-    path("recommendation/", ProductRecommendList.as_view())
+    path("recommendation/", ProductRecommendList.as_view()),
+    
+    path("<int:product_id>/rentalhistories/", ProductRentalHistory.as_view())
 ]

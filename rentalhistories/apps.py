@@ -5,8 +5,3 @@ from django.conf import settings
 class RentalhistoriesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'rentalhistories'
-
-    def ready(self):
-        if settings.SCHEDULER_DEFAULT:
-            from . import operator
-            operator.start()
