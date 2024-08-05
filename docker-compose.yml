@@ -4,8 +4,8 @@ services:
     image: wooga_nginx:latest
     volumes:
       - static_volume:/usr/src/app/_static
-      - ${SSL_CERTIFICATE_PATH}:/etc/nginx/ssl/fullchain.pem:ro
-      - ${SSL_KEY_PATH}:/etc/nginx/ssl/privkey.pem:ro
+      - /etc/letsencrypt/live/server.templ.es/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+      - /etc/letsencrypt/live/server.templ.es/privkey.pem:/etc/nginx/ssl/privkey.pem:ro
     ports:
       - 80:80
       - 443:443
