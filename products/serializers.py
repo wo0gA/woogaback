@@ -126,14 +126,9 @@ class ProductSerializerForWrite(serializers.ModelSerializer):
         return instance
     
     
-class SimpleUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username']
-    
 class ProductSerializerForRead(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    owner = SimpleUserSerializer()
+    owner = UserSerializer()
     category = CategorySerializerForProduct()
     thumbnails = ProductThumbnailSerializer(many=True)
 

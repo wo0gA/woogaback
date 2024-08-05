@@ -9,6 +9,11 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'level', 'point', 'manner_score', 'profile']
 
+class SimpleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
 class OAuthSerializer(serializers.ModelSerializer):
     email = serializers.CharField(required=True)
     

@@ -20,8 +20,12 @@ class ProductList(APIView):
         user = request.user
         data = request.data
         data['owner'] = request.user.id
+
+        # 문자열로 카테고리 데이터 받기
+        category_str = data['category']
+        category = get_object_or_404(Category, sort=category_str)
+        data['category'] = category.id
         
-        print(data)
 
         serializer = ProductSerializerForWrite(data=data)
         if serializer.is_valid():
