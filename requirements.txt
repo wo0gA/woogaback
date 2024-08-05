@@ -52,3 +52,4 @@ tzlocal==5.2
 urllib3==2.2.2
 zope.interface==6.4.post2
 psycopg2-binary==2.9.9
+psycopg2==2.9.9
