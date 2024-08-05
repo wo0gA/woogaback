@@ -14,8 +14,8 @@ class BaseModel(models.Model):
 # 초기 카테고리 데이터 생성 필요
 class Category(MPTTModel):
     id = models.AutoField(primary_key=True)
-    sort = models.CharField(verbose_name='카테고리 종류', max_length=16)
-    parent = TreeForeignKey('self', verbose_name='상위 카테고리', related_name='children',  db_index=True, on_delete=models.CASCADE, null=True, blank=True)
+    sort = models.CharField(verbose_name='카테고리 종류', max_length=32)
+    parent = TreeForeignKey('self', verbose_name='상위 카테고리', related_name='children', db_index=True, on_delete=models.CASCADE, null=True, blank=True)
     views = models.IntegerField(verbose_name='조회수', default=0)
     
     class Meta:

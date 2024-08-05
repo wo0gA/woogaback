@@ -37,7 +37,7 @@ class EnrollmentHistoryList(APIView):
 
 
 class HistoryList(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         product_id = request.GET.get('product')
@@ -94,9 +94,8 @@ class HistoryList(APIView):
             return Response({'message': '날짜 설정이 잘못되었습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class HistoryListDetail(APIView):
-    # permission_classes = [IsAuthenticatedOrReadOnly] 수정 필요
+    permission_classes = [IsAuthenticated] 
 
     def put(self, request, rentalhistory_id):
         history = get_object_or_404(RentalHistory, id=rentalhistory_id)

@@ -143,6 +143,8 @@ class ReviewList(APIView):
 
 
 class CategoryList(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         categories = Category.objects.filter(level=0).prefetch_related('children')
         serializer = CategorySerializer(categories, many=True)
@@ -150,6 +152,8 @@ class CategoryList(APIView):
 
 
 class PopularCategoryList(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         categories = Category.objects.order_by('-views')[:5]
         serializer = SimpleCategorySerializer(categories, many=True)
@@ -157,6 +161,8 @@ class PopularCategoryList(APIView):
         
 
 class RentalAvailability(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, product_id):
         rental_start_date = request.data['rental_start_date']
         rental_end_date = request.data['rental_end_date']
@@ -173,6 +179,8 @@ class RentalAvailability(APIView):
 
 
 class PopularProductList(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         import random
         products = list(Product.objects.order_by('-views')[:50])
@@ -185,6 +193,8 @@ class PopularProductList(APIView):
     
 
 class ProductRecommendList(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         import random
         products = list(Product.objects.all())
@@ -195,7 +205,10 @@ class ProductRecommendList(APIView):
         serializer = ProductSerializerForRead(selected, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class ProductRentalHistory(APIView):
+    permission_classes = [AllowAny]
+    
     def get(self, request, product_id):
         rental_histories = RentalHistory.objects.filter(product__id=product_id)
         serializer = RentalHistorySerializerForRead(rental_histories, many=True)
