@@ -26,7 +26,6 @@ class ProductList(APIView):
         category = get_object_or_404(Category, sort=category_str)
         data['category'] = category.id
         
-
         serializer = ProductSerializerForWrite(data=data)
         if serializer.is_valid():
             product = serializer.save()
@@ -93,9 +92,16 @@ class ProductDetail(APIView):
 
     def put(self, request, product_id):
         product = get_object_or_404(Product, id=product_id)
-        print(request.data)
+        data = request.data.copy()
         
-        serializer = ProductSerializerForWrite(product, data=request.data, partial=True)
+        # 문자열로 카테고리 데이터 받기
+        category_str = data['category']
+
+        if category_str:
+            category = get_object_or_404(Category, sort=category_str)
+            data['category'] = category.id        
+        
+        serializer = ProductSerializerForWrite(product, data=data, partial=True)
         if serializer.is_valid():
             product = serializer.save()
             serializer = ProductSerializerForRead(product)

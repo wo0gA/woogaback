@@ -49,7 +49,7 @@ class HistoryList(APIView):
             product=product_id, 
             owner=product.owner.id, 
             renter=renter_id, 
-            state='SCHEDULED')
+            ) 
         
         RentalHistory.update_rental_info(rental_histories)
         

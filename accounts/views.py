@@ -68,23 +68,23 @@ def get_secret(setting, secrets=secrets):
         error_msg = "Set the {} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
 
-GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
-GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
+#GOOGLE_REDIRECT = get_secret("GOOGLE_REDIRECT")
+#GOOGLE_CALLBACK_URI = get_secret("GOOGLE_CALLBACK_URI")
 GOOGLE_CLIENT_ID = get_secret("GOOGLE_CLIENT_ID")
 GOOGLE_SECRET = get_secret("GOOGLE_SECRET")
 GOOGLE_REDIRECT_URI = get_secret("GOOGLE_REDIRECT_URI")
 
 # 구글 로그인을 하면 인증, 인가 승인
-def google_login(request):      
-    scope = "https://www.googleapis.com/auth/userinfo.email " + \
-                "https://www.googleapis.com/auth/userinfo.profile"
-    return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
+# def google_login(request):      
+#     scope = "https://www.googleapis.com/auth/userinfo.email " + \
+#                 "https://www.googleapis.com/auth/userinfo.profile"
+#     return redirect(f"{GOOGLE_REDIRECT}?client_id={GOOGLE_CLIENT_ID}&response_type=code&redirect_uri={GOOGLE_CALLBACK_URI}&scope={scope}")
 
 def google_callback(request):
     #프론트에서 인가코드 받아오기
-    #body = json.loads(request.body.decode('utf-8'))
-    #code = body['code']
-    code = request.GET.get("code", None)     
+    body = json.loads(request.body.decode('utf-8'))
+    code = body['code']
+    #code = request.GET.get("code", None)     
     
     if code is None:
         return JsonResponse({'error': 'Authorization code error.'}, status=status.HTTP_400_BAD_REQUEST)
