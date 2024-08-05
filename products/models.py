@@ -37,7 +37,7 @@ class Product(BaseModel):
 
     id = models.AutoField(primary_key=True)
     name = models.CharField(verbose_name='제품명', max_length=32)
-    model_name = models.CharField(verbose_name='모델명', max_length=64, default='')
+    model_name = models.CharField(verbose_name='모델명', max_length=64, default='', null=True, blank=True)
     description = models.CharField(verbose_name='상세설명', max_length=1024)
     rental_fee_for_a_day = models.IntegerField(verbose_name='일일 대여료')
     rental_fee_for_a_week = models.IntegerField(verbose_name='일주일 대여료', null=True, blank=True)

@@ -9,28 +9,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import *
 from datetime import datetime
 
-def update_rental_info():
-    print('Update remaining rental days and rental state.')
-
-    today = date.today()
-    rental_histories = RentalHistory.objects.filter(rental_end_date__gte=today)
-    
-    for history in rental_histories:
-
-        # 대여상태 사용중으로 업데이트
-        if history.rental_start_date <= today:
-            if history.state != 'IN_USE':
-                history.state = 'IN_USE'
-                history.save()
-
-        # 남은 대여일수 업데이트
-        remaining_days = (history.rental_end_date-today).days
-        if remaining_days < 0:
-            remaining_days = 0
-        
-        history.remaining_days = remaining_days
-        history.save()
-
 
 class RentalHistoryList(APIView):
     permission_classes = [IsAuthenticated]
@@ -38,6 +16,9 @@ class RentalHistoryList(APIView):
     def get(self, request):
         user = request.user
         rental_histories = RentalHistory.objects.filter(renter=user)
+
+        RentalHistory.update_rental_info(rental_histories)
+
         serializer = RentalHistorySerializerForRead(rental_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -48,6 +29,9 @@ class EnrollmentHistoryList(APIView):
     def get(self, request, product_id):
         user = request.user
         rental_histories = RentalHistory.objects.filter(owner=user, product_id=product_id)
+
+        RentalHistory.update_rental_info(rental_histories)
+
         serializer = RentalHistorySerializerForRead(rental_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -61,13 +45,15 @@ class HistoryList(APIView):
         
         product = Product.objects.get(id=product_id)
 
-        history = RentalHistory.objects.filter(
+        rental_histories = RentalHistory.objects.filter(
             product=product_id, 
             owner=product.owner.id, 
             renter=renter_id, 
             state='SCHEDULED')
         
-        serializer = RentalHistorySerializerForRead(history, many=True)
+        RentalHistory.update_rental_info(rental_histories)
+        
+        serializer = RentalHistorySerializerForRead(rental_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
 
@@ -81,29 +67,31 @@ class HistoryList(APIView):
         rental_end_date = datetime.strptime(request.data['rental_end_date'], "%Y-%m-%d").date()
        
        # 대여 가능한 기간인지 확인
-        data = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
-        if data['availability']:
-            today = date.today()
+        try:
+            data = RentalHistory.is_rental_available(product_id, rental_start_date, rental_end_date)
+            if data['availability']:
+                today = date.today()
 
-            rental_history_data = {
-                "product": product_id,
-                "owner": product.owner.id,
-                "renter": renter_id,
-                "rental_start_date": rental_start_date,
-                "rental_end_date": rental_end_date,
-                "remaining_days": (rental_end_date-today).days,
-                "state": "SCHEDULED" 
-            }
+                rental_history_data = {
+                    "product": product_id,
+                    "owner": product.owner.id,
+                    "renter": renter_id,
+                    "rental_start_date": rental_start_date,
+                    "rental_end_date": rental_end_date,
+                    "remaining_days": (rental_end_date-today).days,
+                    "state": "SCHEDULED" 
+                }
 
-            serializer = RentalHistorySerializerForWrite(data=rental_history_data)
-            if serializer.is_valid():
-                serializer.save() 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = RentalHistorySerializerForRead(data['conflicting_days'], many=True)
-        return Response({'message': '해당 기간은 대여가 불가능합니다.', 'conflicting_days': serializer.data}, status=status.HTTP_400_BAD_REQUEST)
-
+                serializer = RentalHistorySerializerForWrite(data=rental_history_data)
+                if serializer.is_valid():
+                    serializer.save() 
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = RentalHistorySerializerForRead(data['conflicting_days'], many=True)
+            return Response({'message': '해당 기간은 대여가 불가능합니다.', 'conflicting_days': serializer.data}, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError:
+            return Response({'message': '날짜 설정이 잘못되었습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

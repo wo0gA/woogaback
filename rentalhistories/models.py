@@ -52,3 +52,25 @@ class RentalHistory(BaseModel):
             'availability':  not conflicting_rentals.exists()
         }
         return  data
+    
+
+    def update_rental_info(rental_histories):
+        today = date.today()
+        rental_histories = rental_histories.filter(rental_end_date__gte=today)
+
+        for rental_history in rental_histories:
+
+            # 대여상태 사용중으로 업데이트
+            if rental_history.rental_start_date <= today:
+                if rental_history.state != 'IN_USE':
+                    rental_history.state = 'IN_USE'
+                    rental_history.save()
+            
+            # 남은 대여일수 업데이트
+            remaining_days = (rental_history.rental_end_date-today).days
+            if remaining_days < 0:
+                remaining_days = 0
+            
+            rental_history.remaining_days = remaining_days
+            rental_history.save()
+        

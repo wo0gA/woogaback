@@ -177,10 +177,17 @@ class PopularProductList(APIView):
 class ProductRecommendList(APIView):
     def get(self, request):
         import random
-        products = Product.objects.all()
+        products = list(Product.objects.all())
 
         size = min(4, len(products))
         selected = random.sample(products, size)
 
         serializer = ProductSerializerForRead(selected, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ProductRentalHistory(APIView):
+    def get(self, request, product_id):
+        rental_histories = RentalHistory.objects.filter(product__id=product_id)
+        serializer = RentalHistorySerializerForRead(rental_histories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
