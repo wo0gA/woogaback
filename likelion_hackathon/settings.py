@@ -180,7 +180,7 @@ REST_USE_JWT = True
 SITE_ID = 1
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),    # 유효기간 3시간
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),    # 유효기간 3시간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # 유효기간 7일
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,

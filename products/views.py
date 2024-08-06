@@ -24,7 +24,7 @@ class ProductList(APIView):
         # 문자열로 카테고리 데이터 받기
         category_str = data['category']
         category_str = category_str.replace(' ', '')
-        
+
         category = get_object_or_404(Category, sort=category_str)
         data['category'] = category.id
         
@@ -162,8 +162,8 @@ class PopularCategoryList(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        child_categories = Category.objects.filter(level=2).order_by('-views')[:5]
-        parent_categories = [category.parent for category in child_categories if category.parent]
+        products = Product.objects.order_by('-views')[:5]
+        parent_categories = [product.category.parent for product in products if product.category.parent is not None]
         
         serializer = SimpleCategorySerializer(parent_categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
