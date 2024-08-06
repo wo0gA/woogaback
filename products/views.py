@@ -23,6 +23,8 @@ class ProductList(APIView):
 
         # 문자열로 카테고리 데이터 받기
         category_str = data['category']
+        category_str = category_str.replace(' ', '')
+        
         category = get_object_or_404(Category, sort=category_str)
         data['category'] = category.id
         
