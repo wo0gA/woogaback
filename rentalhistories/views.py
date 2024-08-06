@@ -40,6 +40,7 @@ class HistoryList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from django.db.models import Q
         product_id = request.GET.get('product')
         renter_id = request.GET.get('renter')
         
@@ -48,7 +49,9 @@ class HistoryList(APIView):
         rental_histories = RentalHistory.objects.filter(
             product=product_id, 
             owner=product.owner.id, 
-            renter=renter_id, 
+            renter=renter_id
+            ).filter(
+                Q(state='SCHEDULED') | Q(state='IN_USE')
             ) 
         
         RentalHistory.update_rental_info(rental_histories)
