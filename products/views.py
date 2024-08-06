@@ -45,6 +45,8 @@ class ProductList(APIView):
 
         # 검색어 기준 필터링
         if keyword:
+            # 공백 제거 및 검색 최적화
+            keyword = keyword.replace(' ', '') 
             Tag.update_views(keyword)
             
             products = products.filter(
@@ -57,6 +59,9 @@ class ProductList(APIView):
         
         # 카테고리 기준 필터링
         if category_str:
+            # 공백 제거 및 검색 최적화
+            category_str = category_str.replace(' ', '')
+            
             category = get_object_or_404(Category, sort=category_str)
             Category.update_views(category)
 
@@ -106,7 +111,7 @@ class ProductDetail(APIView):
             product = serializer.save()
             serializer = ProductSerializerForRead(product)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, product_id):
         product = get_object_or_404(Product, id=product_id)
@@ -155,8 +160,10 @@ class PopularCategoryList(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        categories = Category.objects.order_by('-views')[:5]
-        serializer = SimpleCategorySerializer(categories, many=True)
+        child_categories = Category.objects.filter(level=2).order_by('-views')[:5]
+        parent_categories = [category.parent for category in child_categories if category.parent]
+        
+        serializer = SimpleCategorySerializer(parent_categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
 
@@ -208,7 +215,7 @@ class ProductRecommendList(APIView):
 
 class ProductRentalHistory(APIView):
     permission_classes = [AllowAny]
-    
+
     def get(self, request, product_id):
         rental_histories = RentalHistory.objects.filter(product__id=product_id)
         serializer = RentalHistorySerializerForRead(rental_histories, many=True)

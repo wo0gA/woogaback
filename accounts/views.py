@@ -52,7 +52,7 @@ class StoreProductList(APIView):
     
 class StoreReviewList(APIView):
     permission_classes = [AllowAny]
-    
+
     def get(self, request, user_id):
         reviews = Review.objects.filter(product__owner__id=user_id)
         serializer = ReviewSerializerForRead(reviews, many=True)
